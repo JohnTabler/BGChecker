@@ -1,0 +1,2 @@
+# BGChecker
+Licensing Tool
