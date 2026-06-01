@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BGTrack — Bulk Upload</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .nav-link { padding: 0.5rem 0.75rem; border-radius: 0.5rem; font-size: 0.875rem; font-weight: 500; color: #4b5563; transition: all 0.15s; }
+    .nav-link:hover { color: #4f46e5; background-color: #eef2ff; }
+    .nav-link-active { color: #4f46e5 !important; background-color: #eef2ff !important; }
+    .cell-input { width: 100%; padding: 0.25rem 0.5rem; font-size: 0.75rem; border: 1px solid transparent; border-radius: 0.375rem; outline: none; background: transparent; }
+    .cell-input:focus { border-color: #6366f1; background: white; }
+    .row-error .cell-input { background-color: #fef2f2; }
+    .cell-input.field-error { border-color: #f87171 !important; background: #fef2f2 !important; }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+  <header class="bg-white border-b border-gray-200 sticky top-0 z-40 shadow-sm">
+    <div id="main-nav" class="max-w-7xl mx-auto"></div>
+  </header>
+
+  <div id="page-loader" class="fixed inset-0 z-50 bg-white flex items-center justify-center">
+    <svg class="w-8 h-8 animate-spin text-indigo-600" fill="none" viewBox="0 0 24 24">
+      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+    </svg>
+  </div>
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+
+    <!-- Header -->
+    <div class="flex items-center gap-2 text-sm text-gray-400 mb-6">
+      <a href="records.html" class="hover:text-indigo-600 transition-colors">Records</a>
+      <span>›</span>
+      <span class="text-gray-700 font-medium">Bulk Upload</span>
+    </div>
+
+    <div class="mb-6">
+      <h1 class="text-2xl font-bold text-gray-900">Bulk Upload</h1>
+      <p class="text-sm text-gray-500 mt-1">Upload a CSV file to import multiple records at once.</p>
+    </div>
+
+    <!-- Step 1: Upload -->
+    <div id="step-upload" class="bg-white rounded-xl border border-gray-200 shadow-sm p-8 mb-6">
+      <div class="flex items-start justify-between mb-6">
+        <div>
+          <h2 class="text-base font-semibold text-gray-900">Step 1 — Upload CSV</h2>
+          <p class="text-sm text-gray-500 mt-1">Download the template, fill it in, then upload it here.</p>
+        </div>
+        <button id="download-template"
+          class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-indigo-600 border border-indigo-200 rounded-lg hover:bg-indigo-50 transition-colors">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+          </svg>
+          Download Template
+        </button>
+      </div>
+
+      <!-- Drop zone -->
+      <label id="drop-zone"
+        class="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-indigo-400 hover:bg-indigo-50/30 transition-colors">
+        <svg class="w-8 h-8 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+        </svg>
+        <p class="text-sm font-medium text-gray-600">Drop your CSV here, or <span class="text-indigo-600">browse</span></p>
+        <p class="text-xs text-gray-400 mt-1">CSV files only · Max 5 MB</p>
+        <input id="file-input" type="file" accept=".csv" class="hidden" />
+      </label>
+
+      <div id="upload-error" class="hidden mt-4 px-4 py-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700"></div>
+    </div>
+
+    <!-- Step 2: Preview & Fix -->
+    <div id="step-preview" class="hidden">
+
+      <!-- Summary bar -->
+      <div class="flex flex-wrap items-center gap-4 mb-4">
+        <div class="flex items-center gap-2 px-4 py-2 bg-emerald-50 border border-emerald-200 rounded-lg">
+          <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+          <span class="text-sm font-medium text-emerald-800"><span id="valid-count">0</span> valid</span>
+        </div>
+        <div class="flex items-center gap-2 px-4 py-2 bg-red-50 border border-red-200 rounded-lg">
+          <span class="w-2 h-2 rounded-full bg-red-500"></span>
+          <span class="text-sm font-medium text-red-800"><span id="error-count">0</span> need attention</span>
+        </div>
+        <p class="text-xs text-gray-500">Fix errors inline before importing. Red fields are required or invalid.</p>
+      </div>
+
+      <!-- Table -->
+      <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden mb-5">
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="border-b border-gray-200 bg-gray-50">
+                <th class="w-8 px-3 py-3 text-xs font-semibold text-gray-400">#</th>
+                <th class="text-left px-3 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Employee Name *</th>
+                <th class="text-left px-3 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Project *</th>
+                <th class="text-left px-3 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Date Ordered *</th>
+                <th class="text-left px-3 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Date Processed</th>
+                <th class="text-left px-3 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Vendor</th>
+                <th class="text-left px-3 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status *</th>
+                <th class="text-left px-3 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Expiration</th>
+                <th class="w-8 px-3 py-3"></th>
+              </tr>
+            </thead>
+            <tbody id="preview-tbody" class="divide-y divide-gray-100"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="flex items-center justify-between">
+        <button id="reupload-btn"
+          class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+          ← Upload different file
+        </button>
+        <div class="flex items-center gap-3">
+          <p id="import-note" class="text-xs text-gray-500"></p>
+          <button id="import-btn"
+            class="px-6 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+            Import Records
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <script src="assets/config.js"></script>
+  <script src="assets/auth.js"></script>
+  <script src="assets/db.js"></script>
+  <script src="assets/ui.js"></script>
+  <script>
+    let currentUser = null;
+    let parsedRows  = [];
+
+    const VALID_STATUSES = ['Pending', 'Cleared', 'Failed', 'Cancelled'];
+    const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+    async function init() {
+      currentUser = await Auth.guard('manager');
+      if (!currentUser) return;
+      UI.renderNav(currentUser);
+      attachListeners();
+      UI.hideLoader();
+    }
+
+    // ----------------------------------------------------------
+    // Template download
+    // ----------------------------------------------------------
+    document.getElementById('download-template').addEventListener('click', () => {
+      const csv = [
+        'employee_name,project,date_ordered,date_processed,vendor,status',
+        'Jane Smith,Project Alpha,2026-01-10,2026-01-15,HireRight,Cleared',
+        'John Doe,Project Beta,2026-02-01,,Sterling,Pending',
+      ].join('\r\n');
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'bgtrack-upload-template.csv';
+      a.click();
+    });
+
+    // ----------------------------------------------------------
+    // File input / drop
+    // ----------------------------------------------------------
+    function attachListeners() {
+      const zone  = document.getElementById('drop-zone');
+      const input = document.getElementById('file-input');
+
+      zone.addEventListener('click', () => input.click());
+      input.addEventListener('change', e => handleFile(e.target.files[0]));
+
+      zone.addEventListener('dragover',  e => { e.preventDefault(); zone.classList.add('border-indigo-400','bg-indigo-50/30'); });
+      zone.addEventListener('dragleave', () => zone.classList.remove('border-indigo-400','bg-indigo-50/30'));
+      zone.addEventListener('drop', e => {
+        e.preventDefault();
+        zone.classList.remove('border-indigo-400','bg-indigo-50/30');
+        handleFile(e.dataTransfer.files[0]);
+      });
+
+      document.getElementById('reupload-btn').addEventListener('click', () => {
+        document.getElementById('step-preview').classList.add('hidden');
+        document.getElementById('step-upload').classList.remove('hidden');
+        document.getElementById('file-input').value = '';
+        parsedRows = [];
+      });
+
+      document.getElementById('import-btn').addEventListener('click', importRecords);
+    }
+
+    // ----------------------------------------------------------
+    // Parse CSV
+    // ----------------------------------------------------------
+    function handleFile(file) {
+      const errEl = document.getElementById('upload-error');
+      errEl.classList.add('hidden');
+
+      if (!file) return;
+      if (!file.name.endsWith('.csv')) {
+        errEl.textContent = 'Please upload a .csv file.';
+        errEl.classList.remove('hidden');
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        errEl.textContent = 'File exceeds 5 MB limit.';
+        errEl.classList.remove('hidden');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = e => {
+        const lines = e.target.result.split(/\r?\n/).filter(l => l.trim());
+        if (lines.length < 2) {
+          errEl.textContent = 'The CSV file appears to be empty or only contains a header row.';
+          errEl.classList.remove('hidden');
+          return;
+        }
+
+        const headers = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/\s+/g, '_'));
+        parsedRows = lines.slice(1).map((line, i) => {
+          const values = parseCSVLine(line);
+          const row = {};
+          headers.forEach((h, idx) => row[h] = (values[idx] || '').trim());
+          row._index = i + 2; // 1-indexed, skipping header
+          return row;
+        }).filter(r => Object.values(r).some(v => v && v !== String(r._index)));
+
+        renderPreview();
+        document.getElementById('step-upload').classList.add('hidden');
+        document.getElementById('step-preview').classList.remove('hidden');
+      };
+      reader.readAsText(file);
+    }
+
+    function parseCSVLine(line) {
+      const result = [];
+      let current = '';
+      let inQuotes = false;
+      for (let i = 0; i < line.length; i++) {
+        if (line[i] === '"') {
+          inQuotes = !inQuotes;
+        } else if (line[i] === ',' && !inQuotes) {
+          result.push(current);
+          current = '';
+        } else {
+          current += line[i];
+        }
+      }
+      result.push(current);
+      return result;
+    }
+
+    // ----------------------------------------------------------
+    // Validate a single row
+    // ----------------------------------------------------------
+    function validateRow(row) {
+      const errors = {};
+      if (!row.employee_name) errors.employee_name = 'Required';
+      if (!row.project)       errors.project = 'Required';
+      if (!row.date_ordered)  errors.date_ordered = 'Required';
+      else if (!DATE_RE.test(row.date_ordered)) errors.date_ordered = 'Use YYYY-MM-DD';
+
+      if (row.date_processed && !DATE_RE.test(row.date_processed)) {
+        errors.date_processed = 'Use YYYY-MM-DD';
+      }
+      if (!row.status) {
+        errors.status = 'Required';
+      } else if (!VALID_STATUSES.includes(row.status)) {
+        errors.status = `Must be: ${VALID_STATUSES.join(', ')}`;
+      }
+      return errors;
+    }
+
+    function computeExpiration(dateProcessed) {
+      if (!dateProcessed || !DATE_RE.test(dateProcessed)) return '';
+      const d = new Date(dateProcessed);
+      d.setMonth(d.getMonth() + 6);
+      return d.toISOString().split('T')[0];
+    }
+
+    // ----------------------------------------------------------
+    // Render preview table
+    // ----------------------------------------------------------
+    function renderPreview() {
+      const tbody = document.getElementById('preview-tbody');
+      let validCount = 0;
+      let errorCount = 0;
+
+      tbody.innerHTML = parsedRows.map((row, rowIdx) => {
+        const errors   = validateRow(row);
+        const hasError = Object.keys(errors).length > 0;
+        if (hasError) errorCount++; else validCount++;
+
+        const expiration = computeExpiration(row.date_processed);
+        const rowClass   = hasError ? 'row-error bg-red-50/40' : '';
+
+        return `
+          <tr class="${rowClass}" data-row="${rowIdx}">
+            <td class="px-3 py-2 text-xs text-gray-400">${row._index}</td>
+            ${editableCell(rowIdx, 'employee_name', row.employee_name, errors.employee_name)}
+            ${editableCell(rowIdx, 'project',        row.project,       errors.project)}
+            ${editableCell(rowIdx, 'date_ordered',   row.date_ordered,  errors.date_ordered,  'date')}
+            ${editableCell(rowIdx, 'date_processed', row.date_processed, errors.date_processed, 'date')}
+            ${editableCell(rowIdx, 'vendor',         row.vendor,        null)}
+            ${statusCell(rowIdx,   row.status,       errors.status)}
+            <td class="px-3 py-2 text-xs text-gray-500" id="exp-${rowIdx}">${expiration || '—'}</td>
+            <td class="px-3 py-2">
+              <button onclick="removeRow(${rowIdx})" class="text-gray-300 hover:text-red-400 transition-colors" title="Remove row">✕</button>
+            </td>
+          </tr>
+          ${hasError ? `<tr data-row-err="${rowIdx}" class="bg-red-50/40"><td></td><td colspan="8" class="px-3 pb-1.5">
+            <p class="text-xs text-red-600">${Object.entries(errors).map(([f,m]) => `<b>${f.replace(/_/g,' ')}:</b> ${m}`).join(' · ')}</p>
+          </td></tr>` : ''}
+        `;
+      }).join('');
+
+      updateCounts(validCount, errorCount);
+      attachCellListeners();
+    }
+
+    function editableCell(rowIdx, field, value, errMsg, inputType = 'text') {
+      const cls = errMsg ? 'cell-input field-error' : 'cell-input';
+      return `<td class="px-1 py-1">
+        <input type="${inputType}" data-row="${rowIdx}" data-field="${field}"
+          class="${cls}" value="${(value || '').replace(/"/g, '&quot;')}" />
+      </td>`;
+    }
+
+    function statusCell(rowIdx, value, errMsg) {
+      const cls = errMsg ? 'cell-input field-error' : 'cell-input';
+      const opts = ['', ...VALID_STATUSES].map(s =>
+        `<option value="${s}" ${s === value ? 'selected' : ''}>${s || 'Select…'}</option>`
+      ).join('');
+      return `<td class="px-1 py-1">
+        <select data-row="${rowIdx}" data-field="status" class="${cls}">${opts}</select>
+      </td>`;
+    }
+
+    function attachCellListeners() {
+      document.querySelectorAll('[data-row][data-field]').forEach(el => {
+        el.addEventListener('change', handleCellChange);
+        el.addEventListener('input',  handleCellChange);
+      });
+    }
+
+    function handleCellChange(e) {
+      const rowIdx = parseInt(e.target.dataset.row);
+      const field  = e.target.dataset.field;
+      parsedRows[rowIdx][field] = e.target.value.trim();
+
+      // Live-update expiration column
+      if (field === 'date_processed') {
+        const exp = computeExpiration(parsedRows[rowIdx].date_processed);
+        const expEl = document.getElementById(`exp-${rowIdx}`);
+        if (expEl) expEl.textContent = exp || '—';
+      }
+
+      // Re-validate just this row (re-render only its error row)
+      const errors  = validateRow(parsedRows[rowIdx]);
+      const hasError = Object.keys(errors).length > 0;
+      const tr      = document.querySelector(`tr[data-row="${rowIdx}"]`);
+      const errTr   = document.querySelector(`tr[data-row-err="${rowIdx}"]`);
+
+      if (tr) {
+        tr.className = hasError ? 'row-error bg-red-50/40' : '';
+      }
+      if (errTr) {
+        errTr.innerHTML = hasError
+          ? `<td></td><td colspan="8" class="px-3 pb-1.5"><p class="text-xs text-red-600">${Object.entries(errors).map(([f,m]) => `<b>${f.replace(/_/g,' ')}:</b> ${m}`).join(' · ')}</p></td>`
+          : '<td></td><td colspan="8"></td>';
+      }
+
+      // Highlight the specific cell
+      e.target.className = (errors[field]) ? 'cell-input field-error' : 'cell-input';
+
+      // Recount
+      let v = 0, err = 0;
+      parsedRows.forEach(r => (Object.keys(validateRow(r)).length > 0 ? err++ : v++));
+      updateCounts(v, err);
+    }
+
+    function removeRow(rowIdx) {
+      parsedRows.splice(rowIdx, 1);
+      renderPreview();
+    }
+
+    function updateCounts(valid, errors) {
+      document.getElementById('valid-count').textContent = valid;
+      document.getElementById('error-count').textContent = errors;
+
+      const importBtn  = document.getElementById('import-btn');
+      const importNote = document.getElementById('import-note');
+
+      if (errors > 0) {
+        importBtn.textContent  = 'Import Valid Records';
+        importNote.textContent = `${errors} row${errors > 1 ? 's' : ''} with errors will be skipped.`;
+        importBtn.disabled     = valid === 0;
+      } else {
+        importBtn.textContent  = `Import ${valid} Record${valid !== 1 ? 's' : ''}`;
+        importNote.textContent = '';
+        importBtn.disabled     = valid === 0;
+      }
+    }
+
+    // ----------------------------------------------------------
+    // Import
+    // ----------------------------------------------------------
+    async function importRecords() {
+      const toImport = parsedRows.filter(r => Object.keys(validateRow(r)).length === 0);
+      if (!toImport.length) {
+        UI.toast('No valid records to import.', 'warning');
+        return;
+      }
+
+      const btn = document.getElementById('import-btn');
+      btn.textContent = 'Importing…';
+      btn.disabled    = true;
+
+      try {
+        const result = await DB.bulkCreateRecords(toImport.map(r => ({
+          employee_name:  r.employee_name,
+          project:        r.project,
+          date_ordered:   r.date_ordered,
+          date_processed: r.date_processed || null,
+          vendor:         r.vendor || null,
+          status:         r.status,
+        })));
+
+        UI.toast(`${result.length} record${result.length !== 1 ? 's' : ''} imported successfully.`, 'success');
+        window.location.href = 'records.html';
+      } catch (err) {
+        UI.toast('Import failed: ' + (err.message || 'Unknown error'), 'error');
+        btn.textContent = 'Import Records';
+        btn.disabled    = false;
+        console.error(err);
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>

@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BGTrack — Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .nav-link { @apply px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-indigo-600 hover:bg-indigo-50 transition-colors; }
+    .nav-link-active { color: #4f46e5 !important; background-color: #eef2ff !important; }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+  <!-- Nav -->
+  <header class="bg-white border-b border-gray-200 sticky top-0 z-40 shadow-sm">
+    <div id="main-nav" class="max-w-7xl mx-auto"></div>
+  </header>
+
+  <!-- Page loader -->
+  <div id="page-loader" class="fixed inset-0 z-50 bg-white flex items-center justify-center">
+    <div class="flex flex-col items-center gap-3">
+      <svg class="w-8 h-8 animate-spin text-indigo-600" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+      </svg>
+      <span class="text-sm text-gray-500">Loading…</span>
+    </div>
+  </div>
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+
+    <!-- Header -->
+    <div class="mb-8">
+      <h1 class="text-2xl font-bold text-gray-900">Dashboard</h1>
+      <p class="text-sm text-gray-500 mt-1">Overview of background check status across all records.</p>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+
+      <div class="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+        <p class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Total Records</p>
+        <p id="stat-total" class="text-3xl font-bold text-gray-900">—</p>
+      </div>
+
+      <div class="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+        <p class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Cleared</p>
+        <p id="stat-cleared" class="text-3xl font-bold text-emerald-600">—</p>
+      </div>
+
+      <div class="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+        <p class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Pending</p>
+        <p id="stat-pending" class="text-3xl font-bold text-amber-500">—</p>
+      </div>
+
+      <div class="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+        <p class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Expired</p>
+        <p id="stat-expired" class="text-3xl font-bold text-red-500">—</p>
+      </div>
+
+    </div>
+
+    <!-- Two column layout -->
+    <div class="grid lg:grid-cols-2 gap-6">
+
+      <!-- Expiring Soon (Manager/Admin) -->
+      <div id="expiring-section" class="hidden bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+        <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+          <div>
+            <h2 class="text-sm font-semibold text-gray-900">Expiring Soon</h2>
+            <p class="text-xs text-gray-400 mt-0.5" id="expiring-subtitle"></p>
+          </div>
+          <a href="reminders.html" class="text-xs font-medium text-indigo-600 hover:text-indigo-700">View all →</a>
+        </div>
+        <div id="expiring-list" class="divide-y divide-gray-50">
+          <div class="px-6 py-8 text-center text-sm text-gray-400">Loading…</div>
+        </div>
+      </div>
+
+      <!-- Recent Records -->
+      <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+        <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+          <div>
+            <h2 class="text-sm font-semibold text-gray-900">Recently Added</h2>
+            <p class="text-xs text-gray-400 mt-0.5">Last 5 records</p>
+          </div>
+          <a href="records.html" class="text-xs font-medium text-indigo-600 hover:text-indigo-700">View all →</a>
+        </div>
+        <div id="recent-list" class="divide-y divide-gray-50">
+          <div class="px-6 py-8 text-center text-sm text-gray-400">Loading…</div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <script src="assets/config.js"></script>
+  <script src="assets/auth.js"></script>
+  <script src="assets/db.js"></script>
+  <script src="assets/ui.js"></script>
+  <script>
+    let currentUser = null;
+
+    async function init() {
+      currentUser = await Auth.guard('viewer');
+      if (!currentUser) return;
+
+      UI.renderNav(currentUser);
+      await loadDashboard();
+      UI.hideLoader();
+    }
+
+    async function loadDashboard() {
+      try {
+        const [all, expiring, expired] = await Promise.all([
+          DB.getRecords(),
+          Auth.isManager(currentUser) ? DB.getExpiringRecords() : Promise.resolve(null),
+          DB.getExpiredRecords(),
+        ]);
+
+        // Stats
+        document.getElementById('stat-total').textContent   = all.length;
+        document.getElementById('stat-cleared').textContent = all.filter(r => r.status === 'Cleared').length;
+        document.getElementById('stat-pending').textContent = all.filter(r => r.status === 'Pending').length;
+        document.getElementById('stat-expired').textContent = expired.length;
+
+        // Expiring section (Manager/Admin only)
+        if (Auth.isManager(currentUser) && expiring) {
+          const section = document.getElementById('expiring-section');
+          section.classList.remove('hidden');
+          document.getElementById('expiring-subtitle').textContent =
+            `Within ${expiring.days} days — ${expiring.records.length} record${expiring.records.length !== 1 ? 's' : ''}`;
+          renderExpiringList(expiring.records);
+        }
+
+        // Recent records
+        const recent = [...all]
+          .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+          .slice(0, 5);
+        renderRecentList(recent);
+
+      } catch (err) {
+        UI.toast('Failed to load dashboard data.', 'error');
+        console.error(err);
+      }
+    }
+
+    function renderExpiringList(records) {
+      const el = document.getElementById('expiring-list');
+      if (!records.length) {
+        el.innerHTML = `<div class="px-6 py-8 text-center text-sm text-gray-400">No records expiring soon.</div>`;
+        return;
+      }
+      el.innerHTML = records.slice(0, 5).map(r => `
+        <a href="record-detail.html?id=${r.id}" class="flex items-center justify-between px-6 py-3.5 hover:bg-gray-50 transition-colors">
+          <div>
+            <p class="text-sm font-medium text-gray-900">${r.employee_name}</p>
+            <p class="text-xs text-gray-400">${r.project} · ${r.vendor || '—'}</p>
+          </div>
+          <div class="text-right">
+            ${UI.expirationBadge(r.expiration_date)}
+          </div>
+        </a>
+      `).join('');
+    }
+
+    function renderRecentList(records) {
+      const el = document.getElementById('recent-list');
+      if (!records.length) {
+        el.innerHTML = `<div class="px-6 py-8 text-center text-sm text-gray-400">No records yet.</div>`;
+        return;
+      }
+      el.innerHTML = records.map(r => `
+        <a href="record-detail.html?id=${r.id}" class="flex items-center justify-between px-6 py-3.5 hover:bg-gray-50 transition-colors">
+          <div>
+            <p class="text-sm font-medium text-gray-900">${r.employee_name}</p>
+            <p class="text-xs text-gray-400">${r.project} · ${UI.formatDate(r.date_ordered)}</p>
+          </div>
+          ${UI.statusBadge(r.status)}
+        </a>
+      `).join('');
+    }
+
+    init();
+  </script>
+</body>
+</html>

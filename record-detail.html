@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BGTrack — Record Detail</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .nav-link { padding: 0.5rem 0.75rem; border-radius: 0.5rem; font-size: 0.875rem; font-weight: 500; color: #4b5563; transition: all 0.15s; }
+    .nav-link:hover { color: #4f46e5; background-color: #eef2ff; }
+    .nav-link-active { color: #4f46e5 !important; background-color: #eef2ff !important; }
+    .field-label { display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 0.375rem; }
+    .field-input { width: 100%; padding: 0.625rem 0.875rem; border: 1px solid #d1d5db; border-radius: 0.5rem; font-size: 0.875rem; transition: all 0.15s; outline: none; }
+    .field-input:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.15); }
+    .field-input:disabled { background-color: #f9fafb; color: #6b7280; cursor: default; }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+  <header class="bg-white border-b border-gray-200 sticky top-0 z-40 shadow-sm">
+    <div id="main-nav" class="max-w-7xl mx-auto"></div>
+  </header>
+
+  <div id="page-loader" class="fixed inset-0 z-50 bg-white flex items-center justify-center">
+    <svg class="w-8 h-8 animate-spin text-indigo-600" fill="none" viewBox="0 0 24 24">
+      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+    </svg>
+  </div>
+
+  <main class="max-w-3xl mx-auto px-4 sm:px-6 py-8">
+
+    <!-- Breadcrumb -->
+    <div class="flex items-center gap-2 text-sm text-gray-400 mb-6">
+      <a href="records.html" class="hover:text-indigo-600 transition-colors">Records</a>
+      <span>›</span>
+      <span id="breadcrumb-label" class="text-gray-700 font-medium">—</span>
+    </div>
+
+    <!-- Card -->
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+
+      <!-- Card header -->
+      <div class="flex items-center justify-between px-6 py-5 border-b border-gray-100">
+        <div>
+          <h1 id="page-title" class="text-lg font-semibold text-gray-900">Record Detail</h1>
+          <p id="record-meta" class="text-xs text-gray-400 mt-0.5"></p>
+        </div>
+        <div class="flex items-center gap-2" id="action-buttons">
+          <!-- Populated by JS based on mode + role -->
+        </div>
+      </div>
+
+      <!-- Form -->
+      <div class="p-6 grid grid-cols-1 sm:grid-cols-2 gap-5">
+
+        <div>
+          <label class="field-label" for="f-employee">Employee Name <span class="text-red-500">*</span></label>
+          <input id="f-employee" type="text" class="field-input" placeholder="Full name" disabled />
+        </div>
+
+        <div>
+          <label class="field-label" for="f-project">Project <span class="text-red-500">*</span></label>
+          <input id="f-project" type="text" class="field-input" placeholder="Project name" disabled />
+        </div>
+
+        <div>
+          <label class="field-label" for="f-vendor">Vendor</label>
+          <input id="f-vendor" type="text" class="field-input" placeholder="Background check vendor" disabled />
+        </div>
+
+        <div>
+          <label class="field-label" for="f-status">Status <span class="text-red-500">*</span></label>
+          <select id="f-status" class="field-input" disabled>
+            <option value="">Select status</option>
+            <option>Pending</option>
+            <option>Cleared</option>
+            <option>Failed</option>
+            <option>Cancelled</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="field-label" for="f-date-ordered">Date Ordered <span class="text-red-500">*</span></label>
+          <input id="f-date-ordered" type="date" class="field-input" disabled />
+        </div>
+
+        <div>
+          <label class="field-label" for="f-date-processed">Date Processed</label>
+          <input id="f-date-processed" type="date" class="field-input" disabled />
+        </div>
+
+        <!-- Expiration (computed, always read-only) -->
+        <div class="sm:col-span-2">
+          <label class="field-label">Expiration Date</label>
+          <div id="expiration-display" class="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-600">
+            Set automatically from Date Processed (+ 6 months)
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Error -->
+      <div id="form-error" class="hidden mx-6 mb-4 px-4 py-3 bg-red-50 border border-red-200 rounded-lg">
+        <p class="text-sm text-red-700" id="form-error-text"></p>
+      </div>
+
+    </div>
+
+    <!-- Delete zone (Admin only, edit mode) -->
+    <div id="delete-zone" class="hidden mt-6 bg-white rounded-xl border border-red-100 shadow-sm p-6">
+      <h3 class="text-sm font-semibold text-gray-900 mb-1">Delete Record</h3>
+      <p class="text-xs text-gray-500 mb-4">This action is permanent and cannot be undone.</p>
+      <button id="delete-btn"
+        class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors">
+        Delete this record
+      </button>
+    </div>
+
+  </main>
+
+  <script src="assets/config.js"></script>
+  <script src="assets/auth.js"></script>
+  <script src="assets/db.js"></script>
+  <script src="assets/ui.js"></script>
+  <script>
+    let currentUser = null;
+    let record      = null;
+    let isEditing   = false;
+
+    const params = new URLSearchParams(window.location.search);
+    const recordId = params.get('id');
+    const mode     = params.get('mode'); // 'new' for create
+
+    async function init() {
+      currentUser = await Auth.guard('viewer');
+      if (!currentUser) return;
+
+      UI.renderNav(currentUser);
+
+      if (mode === 'new') {
+        if (!Auth.isManager(currentUser)) {
+          window.location.href = 'records.html';
+          return;
+        }
+        setupNewMode();
+      } else if (recordId) {
+        await loadRecord(recordId);
+      } else {
+        window.location.href = 'records.html';
+        return;
+      }
+
+      UI.hideLoader();
+    }
+
+    function setupNewMode() {
+      isEditing = true;
+      document.getElementById('page-title').textContent     = 'New Record';
+      document.getElementById('breadcrumb-label').textContent = 'New Record';
+      document.getElementById('record-meta').textContent    = '';
+      setFieldsEnabled(true);
+      renderActionButtons('new');
+    }
+
+    async function loadRecord(id) {
+      try {
+        record = await DB.getRecordById(id);
+        populateFields(record);
+        document.getElementById('breadcrumb-label').textContent = record.employee_name;
+        document.getElementById('page-title').textContent       = record.employee_name;
+        document.getElementById('record-meta').textContent =
+          `Added ${UI.formatDate(record.created_at)} · Last updated ${UI.formatDate(record.updated_at)}`;
+
+        renderActionButtons('view');
+
+        if (Auth.isAdmin(currentUser)) {
+          document.getElementById('delete-zone').classList.remove('hidden');
+        }
+      } catch (err) {
+        UI.toast('Failed to load record.', 'error');
+        console.error(err);
+      }
+    }
+
+    function populateFields(r) {
+      document.getElementById('f-employee').value      = r.employee_name  || '';
+      document.getElementById('f-project').value       = r.project        || '';
+      document.getElementById('f-vendor').value        = r.vendor         || '';
+      document.getElementById('f-status').value        = r.status         || '';
+      document.getElementById('f-date-ordered').value  = r.date_ordered   || '';
+      document.getElementById('f-date-processed').value = r.date_processed || '';
+      updateExpirationDisplay(r.date_processed);
+    }
+
+    function updateExpirationDisplay(dateProcessed) {
+      const el = document.getElementById('expiration-display');
+      if (!dateProcessed) {
+        el.textContent = 'Set automatically from Date Processed (+ 6 months)';
+        el.className   = 'px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-400 italic';
+        return;
+      }
+      const d = new Date(dateProcessed);
+      d.setMonth(d.getMonth() + 6);
+      const expStr = d.toISOString().split('T')[0];
+      el.innerHTML = UI.expirationBadge(expStr) + `<span class="ml-2 text-gray-600">${UI.formatDate(expStr)}</span>`;
+      el.className = 'px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm flex items-center gap-1';
+    }
+
+    // Live-update expiration when date_processed changes
+    document.getElementById('f-date-processed').addEventListener('change', e => {
+      updateExpirationDisplay(e.target.value);
+    });
+
+    function setFieldsEnabled(enabled) {
+      ['f-employee','f-project','f-vendor','f-status','f-date-ordered','f-date-processed']
+        .forEach(id => document.getElementById(id).disabled = !enabled);
+    }
+
+    function renderActionButtons(state) {
+      const container = document.getElementById('action-buttons');
+      const canEdit   = Auth.isManager(currentUser);
+
+      if (state === 'view') {
+        container.innerHTML = canEdit ? `
+          <button id="edit-btn"
+            class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors">
+            Edit
+          </button>` : '';
+
+        if (canEdit) {
+          document.getElementById('edit-btn').addEventListener('click', () => {
+            isEditing = true;
+            setFieldsEnabled(true);
+            renderActionButtons('editing');
+          });
+        }
+      }
+
+      if (state === 'editing') {
+        container.innerHTML = `
+          <button id="cancel-btn"
+            class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">
+            Cancel
+          </button>
+          <button id="save-btn"
+            class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors">
+            Save Changes
+          </button>`;
+
+        document.getElementById('cancel-btn').addEventListener('click', () => {
+          if (record) populateFields(record);
+          setFieldsEnabled(false);
+          isEditing = false;
+          renderActionButtons('view');
+        });
+        document.getElementById('save-btn').addEventListener('click', saveRecord);
+      }
+
+      if (state === 'new') {
+        container.innerHTML = `
+          <a href="records.html"
+            class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">
+            Cancel
+          </a>
+          <button id="save-btn"
+            class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors">
+            Create Record
+          </button>`;
+        document.getElementById('save-btn').addEventListener('click', saveRecord);
+      }
+    }
+
+    async function saveRecord() {
+      const errDiv = document.getElementById('form-error');
+      const errTxt = document.getElementById('form-error-text');
+      errDiv.classList.add('hidden');
+
+      const payload = {
+        employee_name:  document.getElementById('f-employee').value.trim(),
+        project:        document.getElementById('f-project').value.trim(),
+        vendor:         document.getElementById('f-vendor').value.trim(),
+        status:         document.getElementById('f-status').value,
+        date_ordered:   document.getElementById('f-date-ordered').value || null,
+        date_processed: document.getElementById('f-date-processed').value || null,
+      };
+
+      // Validation
+      const missing = [];
+      if (!payload.employee_name) missing.push('Employee Name');
+      if (!payload.project)       missing.push('Project');
+      if (!payload.status)        missing.push('Status');
+      if (!payload.date_ordered)  missing.push('Date Ordered');
+
+      if (missing.length) {
+        errTxt.textContent = `Required fields missing: ${missing.join(', ')}`;
+        errDiv.classList.remove('hidden');
+        return;
+      }
+
+      const btn = document.getElementById('save-btn');
+      btn.textContent = 'Saving…';
+      btn.disabled    = true;
+
+      try {
+        if (mode === 'new') {
+          const created = await DB.createRecord(payload);
+          UI.toast('Record created.', 'success');
+          window.location.href = `record-detail.html?id=${created.id}`;
+        } else {
+          record = await DB.updateRecord(recordId, payload);
+          populateFields(record);
+          setFieldsEnabled(false);
+          isEditing = false;
+          renderActionButtons('view');
+          UI.toast('Record saved.', 'success');
+        }
+      } catch (err) {
+        errTxt.textContent = err.message || 'Failed to save record.';
+        errDiv.classList.remove('hidden');
+        btn.textContent = mode === 'new' ? 'Create Record' : 'Save Changes';
+        btn.disabled    = false;
+      }
+    }
+
+    // Delete
+    document.getElementById('delete-btn')?.addEventListener('click', async () => {
+      const confirmed = await UI.confirm({
+        title:        'Delete Record',
+        message:      `Are you sure you want to delete the record for ${record?.employee_name}? This cannot be undone.`,
+        confirmLabel: 'Delete',
+        danger:       true,
+      });
+      if (!confirmed) return;
+
+      try {
+        await DB.deleteRecord(recordId);
+        UI.toast('Record deleted.', 'success');
+        window.location.href = 'records.html';
+      } catch (err) {
+        UI.toast('Failed to delete record.', 'error');
+      }
+    });
+
+    init();
+  </script>
+</body>
+</html>
