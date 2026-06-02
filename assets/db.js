@@ -9,7 +9,7 @@ const DB = (() => {
   // ----------------------------------------------------------
 
   async function getRecords(filters = {}) {
-    let query = supabase
+    let query = supabaseClient
       .from('records')
       .select('*')
       .order('expiration_date', { ascending: true });
@@ -28,7 +28,7 @@ const DB = (() => {
   }
 
   async function getRecordById(id) {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseClient
       .from('records')
       .select('*')
       .eq('id', id)
@@ -39,7 +39,7 @@ const DB = (() => {
 
   async function createRecord(record) {
     const payload = _buildPayload(record);
-    const { data, error } = await supabase
+    const { data, error } = await supabaseClient
       .from('records')
       .insert([payload])
       .select()
@@ -50,7 +50,7 @@ const DB = (() => {
 
   async function updateRecord(id, record) {
     const payload = _buildPayload(record);
-    const { data, error } = await supabase
+    const { data, error } = await supabaseClient
       .from('records')
       .update({ ...payload, updated_at: new Date().toISOString() })
       .eq('id', id)
@@ -68,7 +68,7 @@ const DB = (() => {
   // Bulk insert — used by bulk upload flow
   async function bulkCreateRecords(records) {
     const payloads = records.map(_buildPayload);
-    const { data, error } = await supabase
+    const { data, error } = await supabaseClient
       .from('records')
       .insert(payloads)
       .select();
@@ -102,7 +102,7 @@ const DB = (() => {
     const todayStr  = today.toISOString().split('T')[0];
     const cutoffStr = cutoff.toISOString().split('T')[0];
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseClient
       .from('records')
       .select('*')
       .gte('expiration_date', todayStr)   // not already expired
@@ -115,7 +115,7 @@ const DB = (() => {
 
   async function getExpiredRecords() {
     const today = new Date().toISOString().split('T')[0];
-    const { data, error } = await supabase
+    const { data, error } = await supabaseClient
       .from('records')
       .select('*')
       .lt('expiration_date', today)
@@ -129,7 +129,7 @@ const DB = (() => {
   // ----------------------------------------------------------
 
   async function getSettings() {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseClient
       .from('settings')
       .select('*')
       .limit(1)
@@ -141,7 +141,7 @@ const DB = (() => {
   async function updateSettings(reminder_days, updated_by) {
     const existing = await getSettings();
     if (existing) {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from('settings')
         .update({ reminder_days, updated_by, updated_at: new Date().toISOString() })
         .eq('id', existing.id)
@@ -150,7 +150,7 @@ const DB = (() => {
       if (error) throw error;
       return data;
     } else {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from('settings')
         .insert([{ reminder_days, updated_by }])
         .select()
@@ -165,7 +165,7 @@ const DB = (() => {
   // ----------------------------------------------------------
 
   async function getUsers() {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseClient
       .from('users')
       .select('id, email, full_name, role, created_at')
       .order('created_at', { ascending: false });
@@ -174,7 +174,7 @@ const DB = (() => {
   }
 
   async function updateUserRole(userId, role) {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseClient
       .from('users')
       .update({ role })
       .eq('id', userId)

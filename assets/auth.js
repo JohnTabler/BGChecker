@@ -29,7 +29,7 @@ const Auth = (() => {
     const { data: { session }, error } = await supabaseClient.auth.getSession();
     if (error || !session) return null;
 
-    const { data: profile } = await supabase
+    const { data: profile } = await supabaseClient
       .from('users')
       .select('id, email, role, full_name')
       .eq('id', session.user.id)
