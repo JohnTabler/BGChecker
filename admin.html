@@ -225,7 +225,13 @@
         const errEl=document.getElementById('invite-error'); errEl.classList.add('hidden');
         if(!email){errEl.textContent='Email is required.';errEl.classList.remove('hidden');return;}
         try {
-          const{error}=await supabaseClient.auth.signInWithOtp({email});
+          const{error}=
+          await supabaseClient.auth.signInWithOtp({
+          email,
+          options: {
+            emailRedirectTo: 'https://johntabler.github.io/BGChecker/index.html'
+          }
+});
           if(error) throw error;
           UI.toast(`Invite sent to ${email}.`,'success');
           document.getElementById('invite-name').value=''; document.getElementById('invite-email').value='';
