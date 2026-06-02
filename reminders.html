@@ -13,7 +13,10 @@
   <div class="ml-56 flex-1 flex flex-col min-h-screen">
     <header class="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between sticky top-0 z-20">
       <h1 class="text-base font-semibold text-gray-800">Reminders</h1>
-      <button id="export-btn" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">⬇ Export CSV</button>
+      <div class="flex items-center gap-3">
+        <button id="export-btn" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">⬇ Export CSV</button>
+        <div id="profile-area"></div>
+      </div>
     </header>
 
     <div id="page-loader" class="fixed inset-0 z-50 bg-white flex items-center justify-center">

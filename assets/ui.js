@@ -49,23 +49,52 @@ const UI = (() => {
         ${isAdmin ? link('admin.html', '⚙️', 'Settings & Users', 'admin') : ''}
       </nav>
 
-      <!-- User info at bottom -->
-      <div class="px-3 py-4 border-t border-white/10 mt-auto">
-        <div class="flex items-center gap-2.5 mb-2">
-          <div class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-white text-sm font-semibold flex-shrink-0">
-            ${(user.full_name || user.email || '?')[0].toUpperCase()}
-          </div>
-          <div class="min-w-0">
-            <p class="text-white text-xs font-medium truncate">${user.full_name || user.email}</p>
-            <p class="text-slate-400 text-xs capitalize">${Auth.ROLES[user.role]?.label || user.role}</p>
+      `;
+
+    // Inject profile dropdown into header
+    const profileArea = document.getElementById('profile-area');
+    if (profileArea) {
+      const initials = (user.full_name || user.email || '?')[0].toUpperCase();
+      const roleLabel = Auth.ROLES[user.role]?.label || user.role;
+      profileArea.innerHTML = `
+        <div class="relative" id="profile-menu-wrap">
+          <button id="profile-menu-btn"
+            class="flex items-center gap-2.5 px-3 py-1.5 rounded-lg hover:bg-gray-100 transition-colors focus:outline-none">
+            <div class="w-7 h-7 rounded-full bg-slate-700 flex items-center justify-center text-white text-xs font-semibold flex-shrink-0">
+              ${initials}
+            </div>
+            <div class="text-left hidden sm:block">
+              <p class="text-xs font-semibold text-gray-800 leading-tight">${user.full_name || user.email}</p>
+              <p class="text-xs text-gray-400 leading-tight">${roleLabel}</p>
+            </div>
+            <svg class="w-3.5 h-3.5 text-gray-400 ml-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+            </svg>
+          </button>
+          <div id="profile-menu-dropdown"
+            class="hidden absolute right-0 mt-1 w-48 bg-white rounded-xl shadow-lg border border-gray-200 py-1 z-50">
+            <button onclick="UI.showChangePasswordModal()"
+              class="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+              🔑 Change Password
+            </button>
+            <div class="border-t border-gray-100 my-1"></div>
+            <button onclick="Auth.signOut()"
+              class="w-full text-left px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors">
+              Sign out
+            </button>
           </div>
         </div>
-        <button onclick="Auth.signOut()"
-          class="w-full text-left text-xs text-slate-400 hover:text-red-300 transition-colors px-1 py-1">
-          Sign out →
-        </button>
-      </div>
-    `;
+      `;
+
+      // Toggle dropdown
+      const btn = document.getElementById('profile-menu-btn');
+      const dropdown = document.getElementById('profile-menu-dropdown');
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        dropdown.classList.toggle('hidden');
+      });
+      document.addEventListener('click', () => dropdown.classList.add('hidden'));
+    }
   }
 
   // ----------------------------------------------------------
@@ -128,6 +157,94 @@ const UI = (() => {
       modal.addEventListener('click', e => { if (e.target === modal) { modal.remove(); resolve(false); } });
     });
   }
+  // ----------------------------------------------------------
+  // Change password modal (self)
+  // ----------------------------------------------------------
+  function showChangePasswordModal() {
+    // Close profile dropdown if open
+    document.getElementById('profile-menu-dropdown')?.classList.add('hidden');
+
+    const existing = document.getElementById('change-pw-modal');
+    if (existing) existing.remove();
+
+    const modal = document.createElement('div');
+    modal.id = 'change-pw-modal';
+    modal.className = 'fixed inset-0 z-50 flex items-center justify-center bg-black/50';
+    modal.innerHTML = `
+      <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm mx-4 p-6">
+        <h3 class="text-base font-semibold text-gray-900 mb-1">Change Password</h3>
+        <p class="text-xs text-gray-400 mb-5">Enter your current password to confirm your identity.</p>
+        <div class="space-y-3">
+          <div>
+            <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Current Password</label>
+            <input id="cpw-current" type="password" autocomplete="current-password"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-slate-400"/>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">New Password</label>
+            <input id="cpw-new" type="password" autocomplete="new-password"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-slate-400"/>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Confirm New Password</label>
+            <input id="cpw-confirm" type="password" autocomplete="new-password"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-slate-400"/>
+          </div>
+          <p id="cpw-error" class="hidden text-xs text-red-600 pt-1"></p>
+        </div>
+        <div class="flex gap-3 mt-5">
+          <button id="cpw-cancel" class="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">Cancel</button>
+          <button id="cpw-save"   class="flex-1 px-4 py-2 text-sm font-medium text-white bg-slate-700 rounded-lg hover:bg-slate-800 transition-colors">Update</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+
+    document.getElementById('cpw-cancel').addEventListener('click', () => modal.remove());
+    modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+
+    document.getElementById('cpw-save').addEventListener('click', async () => {
+      const current = document.getElementById('cpw-current').value;
+      const newPw   = document.getElementById('cpw-new').value;
+      const confirm = document.getElementById('cpw-confirm').value;
+      const errEl   = document.getElementById('cpw-error');
+      errEl.classList.add('hidden');
+
+      if (!current || !newPw || !confirm) {
+        errEl.textContent = 'All fields are required.'; errEl.classList.remove('hidden'); return;
+      }
+      if (newPw.length < 8) {
+        errEl.textContent = 'New password must be at least 8 characters.'; errEl.classList.remove('hidden'); return;
+      }
+      if (newPw !== confirm) {
+        errEl.textContent = 'New passwords do not match.'; errEl.classList.remove('hidden'); return;
+      }
+
+      const saveBtn = document.getElementById('cpw-save');
+      saveBtn.textContent = 'Updating…'; saveBtn.disabled = true;
+
+      try {
+        // Re-authenticate with current password first
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        const { error: reAuthError } = await supabaseClient.auth.signInWithPassword({
+          email: session.user.email,
+          password: current,
+        });
+        if (reAuthError) throw new Error('Current password is incorrect.');
+
+        // Now update
+        const { error: updateError } = await supabaseClient.auth.updateUser({ password: newPw });
+        if (updateError) throw updateError;
+
+        modal.remove();
+        toast('Password updated successfully.', 'success');
+      } catch(err) {
+        errEl.textContent = err.message || 'Failed to update password.';
+        errEl.classList.remove('hidden');
+        saveBtn.textContent = 'Update'; saveBtn.disabled = false;
+      }
+    });
+  }
 
   // ----------------------------------------------------------
   // Format helpers
@@ -164,5 +281,5 @@ const UI = (() => {
     return `<span class="text-sm text-gray-600">${formatDate(dateStr)}</span>`;
   }
 
-  return { renderNav, toast, showLoader, hideLoader, confirm, formatDate, daysUntil, statusBadge, expirationBadge };
+  return { renderNav, toast, showLoader, hideLoader, confirm, showChangePasswordModal, formatDate, daysUntil, statusBadge, expirationBadge };
 })();
