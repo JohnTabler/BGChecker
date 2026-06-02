@@ -88,7 +88,7 @@
   <script src="assets/ui.js"></script>
   <script>
     let currentUser = null;
-    document.getElementById('top-date').textContent = new Date().toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric', year:'numeric' });
+    // top-date removed — date display replaced by profile dropdown
 
     async function init() {
       currentUser = await Auth.guard('viewer');
