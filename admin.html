@@ -236,17 +236,17 @@
   try {
     const session = (await supabaseClient.auth.getSession()).data.session;
     const res = await fetch(
-      `${CONFIG.SUPABASE_URL}/functions/v1/create-user`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`,
-          'apikey': CONFIG.SUPABASE_ANON_KEY,
-        },
-        body: JSON.stringify({ email, full_name: name, role }),
-      }
-    );
+  `${SUPABASE_URL}/functions/v1/create-user`,
+  {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${session.access_token}`,
+      'apikey': SUPABASE_ANON_KEY,
+    },
+    body: JSON.stringify({ email, full_name: name, role }),
+  }
+);
 
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Failed to create user');
