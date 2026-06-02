@@ -74,6 +74,10 @@
           <div class="sm:col-span-2">
             <label class="field-label" for="f-doc-url">Document Link</label>
             <input id="f-doc-url" type="url" class="field-input" placeholder="https://sharepoint.com/..." disabled />
+            <a id="doc-link-btn" href="#" target="_blank" rel="noopener"
+              class="hidden mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-slate-700 rounded-lg hover:bg-slate-800 transition-colors">
+              Go to Document ↗
+            </a>
           </div>
           <div class="sm:col-span-2">
             <label class="field-label">Expiration Date</label>
@@ -151,6 +155,13 @@
       document.getElementById('f-date-ordered').value   = r.date_ordered    || '';
       document.getElementById('f-date-processed').value = r.date_processed  || '';
       document.getElementById('f-doc-url').value = r.document_url || '';
+      const docBtn = document.getElementById('doc-link-btn');
+      if (r.document_url) {
+        docBtn.href = r.document_url;
+        docBtn.classList.remove('hidden');
+      } else {
+        docBtn.classList.add('hidden');
+      }
       updateExpirationDisplay(r.date_processed);
     }
 
