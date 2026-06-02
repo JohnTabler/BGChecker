@@ -98,6 +98,10 @@ const Auth = (() => {
     _resetTimeout(); // start the clock immediately
   }
 
+    // ----------------------------------------------------------
+  // Sign out
+  // ----------------------------------------------------------
+  async function signOut() {
     await supabaseClient.auth.signOut();
     window.location.href = 'index.html';
   }
