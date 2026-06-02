@@ -43,7 +43,6 @@ const UI = (() => {
         ${link('dashboard.html',   '📊', 'Dashboard',  'dashboard')}
         ${link('records.html',     '📋', 'Records',    'records')}
         ${isManager ? link('reminders.html', '🔔', 'Reminders', 'reminders') : ''}
-        ${isManager ? link('bulk-upload.html', '📤', 'Bulk Upload', 'bulk-upload') : ''}
 
         ${isAdmin ? `<p class="text-xs font-semibold text-slate-500 uppercase tracking-wider px-3 pt-4 pb-1">Admin</p>` : ''}
         ${isAdmin ? link('admin.html', '⚙️', 'Settings & Users', 'admin') : ''}
