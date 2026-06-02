@@ -104,6 +104,37 @@
     const VALID_STATUSES=['Pending','Cleared','Failed','Cancelled'];
     const DATE_RE=/^\d{4}-\d{2}-\d{2}$/;
 
+const MONTH_NAMES={january:'01',february:'02',march:'03',april:'04',may:'05',june:'06',july:'07',august:'08',september:'09',october:'10',november:'11',december:'12',jan:'01',feb:'02',mar:'03',apr:'04',jun:'06',jul:'07',aug:'08',sep:'09',oct:'10',nov:'11',dec:'12'};
+
+function parseDate(str) {
+  if (!str) return null;
+  str = str.trim();
+
+  // Already YYYY-MM-DD
+  if (DATE_RE.test(str)) return str;
+
+  // YYYY/MM/DD
+  let m = str.match(/^(\d{4})\/(\d{1,2})\/(\d{1,2})$/);
+  if (m) return `${m[1]}-${m[2].padStart(2,'0')}-${m[3].padStart(2,'0')}`;
+
+  // MM/DD/YYYY or M/D/YYYY
+  m = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (m) return `${m[3]}-${m[1].padStart(2,'0')}-${m[2].padStart(2,'0')}`;
+
+  // MM-DD-YYYY
+  m = str.match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);
+  if (m) return `${m[3]}-${m[1].padStart(2,'0')}-${m[2].padStart(2,'0')}`;
+
+  // Month D, YYYY or Mon D, YYYY
+  m = str.match(/^([a-zA-Z]+)\s+(\d{1,2}),?\s+(\d{4})$/);
+  if (m) {
+    const mon = MONTH_NAMES[m[1].toLowerCase()];
+    if (mon) return `${m[3]}-${mon}-${m[2].padStart(2,'0')}`;
+  }
+
+  return null;
+}
+
     async function init() {
       currentUser = await Auth.guard('manager');
       if (!currentUser) return;
@@ -166,16 +197,28 @@
     }
 
     function validateRow(row) {
-      const errors={};
-      if(!row.employee_name) errors.employee_name='Required';
-      if(!row.project) errors.project='Required';
-      if(!row.date_ordered) errors.date_ordered='Required';
-      else if(!DATE_RE.test(row.date_ordered)) errors.date_ordered='Use YYYY-MM-DD';
-      if(row.date_processed&&!DATE_RE.test(row.date_processed)) errors.date_processed='Use YYYY-MM-DD';
-      if(!row.status) errors.status='Required';
-      else if(!VALID_STATUSES.includes(row.status)) errors.status=`Must be: ${VALID_STATUSES.join(', ')}`;
-      return errors;
-    }
+  const errors={};
+  if(!row.employee_name) errors.employee_name='Required';
+  if(!row.project) errors.project='Required';
+
+  if(!row.date_ordered) {
+    errors.date_ordered='Required';
+  } else {
+    const parsed=parseDate(row.date_ordered);
+    if(!parsed) errors.date_ordered='Unrecognized date format';
+    else row.date_ordered=parsed; // normalize in-place
+  }
+
+  if(row.date_processed) {
+    const parsed=parseDate(row.date_processed);
+    if(!parsed) errors.date_processed='Unrecognized date format';
+    else row.date_processed=parsed; // normalize in-place
+  }
+
+  if(!row.status) errors.status='Required';
+  else if(!VALID_STATUSES.includes(row.status)) errors.status=`Must be: ${VALID_STATUSES.join(', ')}`;
+  return errors;
+}
 
     function computeExpiration(dp) {
       if(!dp||!DATE_RE.test(dp)) return '';
