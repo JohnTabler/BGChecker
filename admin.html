@@ -259,11 +259,7 @@
     errEl.classList.remove('hidden');
   }
 });
-          if(error) throw error;
-          UI.toast(`Invite sent to ${email}.`,'success');
-          document.getElementById('invite-name').value=''; document.getElementById('invite-email').value='';
-        } catch(err){ errEl.textContent=err.message||'Failed to send invite.'; errEl.classList.remove('hidden'); }
-      });
+
     }
     init();
   </script>
