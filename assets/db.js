@@ -61,7 +61,7 @@ const DB = (() => {
   }
 
   async function deleteRecord(id) {
-    const { error } = await supabase.from('records').delete().eq('id', id);
+    const { error } = await supabaseClient.from('records').delete().eq('id', id);
     if (error) throw error;
   }
 
@@ -186,7 +186,7 @@ const DB = (() => {
 
   async function deleteUser(userId) {
     // Deletes from users table; auth record requires server-side admin API
-    const { error } = await supabase.from('users').delete().eq('id', userId);
+    const { error } = await supabaseClient.from('users').delete().eq('id', userId);
     if (error) throw error;
   }
 

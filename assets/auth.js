@@ -26,7 +26,7 @@ const Auth = (() => {
   // Get current session user + profile
   // ----------------------------------------------------------
   async function getUser() {
-    const { data: { session }, error } = await supabase.auth.getSession();
+    const { data: { session }, error } = await supabaseClient.auth.getSession();
     if (error || !session) return null;
 
     const { data: profile } = await supabase
@@ -72,7 +72,7 @@ const Auth = (() => {
   // Sign in
   // ----------------------------------------------------------
   async function signIn(email, password) {
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
     if (error) throw error;
     return data;
   }
@@ -81,7 +81,7 @@ const Auth = (() => {
   // Sign out
   // ----------------------------------------------------------
   async function signOut() {
-    await supabase.auth.signOut();
+    await supabaseClient.auth.signOut();
     window.location.href = 'index.html';
   }
 
