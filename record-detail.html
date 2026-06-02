@@ -72,6 +72,10 @@
             <input id="f-date-processed" type="date" class="field-input" disabled />
           </div>
           <div class="sm:col-span-2">
+            <label class="field-label" for="f-doc-url">Document Link</label>
+            <input id="f-doc-url" type="url" class="field-input" placeholder="https://sharepoint.com/..." disabled />
+          </div>
+          <div class="sm:col-span-2">
             <label class="field-label">Expiration Date</label>
             <div id="expiration-display" class="px-3 py-2.5 bg-slate-50 border border-gray-200 rounded-lg text-sm text-gray-500 italic">
               Set automatically from Date Processed (+ 6 months)
@@ -145,6 +149,7 @@
       document.getElementById('f-status').value         = r.status          || '';
       document.getElementById('f-date-ordered').value   = r.date_ordered    || '';
       document.getElementById('f-date-processed').value = r.date_processed  || '';
+      document.getElementById('f-doc-url').value = r.document_url || '';
       updateExpirationDisplay(r.date_processed);
     }
 
@@ -160,7 +165,7 @@
     document.getElementById('f-date-processed').addEventListener('change', e => updateExpirationDisplay(e.target.value));
 
     function setFieldsEnabled(enabled) {
-      ['f-employee','f-project','f-vendor','f-status','f-date-ordered','f-date-processed']
+      ['f-employee','f-project','f-vendor','f-status','f-date-ordered','f-date-processed','f-doc-url']
         .forEach(id => document.getElementById(id).disabled = !enabled);
     }
 
@@ -196,6 +201,7 @@
         status:         document.getElementById('f-status').value,
         date_ordered:   document.getElementById('f-date-ordered').value || null,
         date_processed: document.getElementById('f-date-processed').value || null,
+        document_url:   document.getElementById('f-doc-url').value.trim() || null,
       };
       const missing = [];
       if (!payload.employee_name) missing.push('Employee Name');

@@ -12,6 +12,7 @@ const Exporter = (() => {
     { key: 'vendor',          label: 'Vendor' },
     { key: 'status',          label: 'Status' },
     { key: 'expiration_date', label: 'Expiration Date' },
+    { key: 'document_url',    label: 'Document Link' },
   ];
 
   const REMINDER_COLUMNS = [
