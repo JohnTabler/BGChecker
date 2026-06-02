@@ -86,6 +86,7 @@
       currentUser = await Auth.guard('viewer');
       if (!currentUser) return;
       UI.renderNav(currentUser);
+      Auth.startSessionTimeout();
       if (Auth.isManager(currentUser)) {
         document.getElementById('add-record-btn').classList.replace('hidden','flex');
         document.getElementById('bulk-upload-btn').classList.replace('hidden','flex');

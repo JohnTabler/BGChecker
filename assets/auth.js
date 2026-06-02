@@ -78,9 +78,26 @@ const Auth = (() => {
   }
 
   // ----------------------------------------------------------
-  // Sign out
+  // Session timeout — auto sign-out after inactivity
   // ----------------------------------------------------------
-  async function signOut() {
+  const TIMEOUT_MS = 30 * 60 * 1000; // 30 minutes
+  let _timeoutHandle = null;
+
+  function _resetTimeout() {
+    clearTimeout(_timeoutHandle);
+    _timeoutHandle = setTimeout(async () => {
+      await supabaseClient.auth.signOut();
+      window.location.href = 'index.html?reason=timeout';
+    }, TIMEOUT_MS);
+  }
+
+  function startSessionTimeout() {
+    ['mousemove','keydown','click','scroll','touchstart'].forEach(evt =>
+      document.addEventListener(evt, _resetTimeout, { passive: true })
+    );
+    _resetTimeout(); // start the clock immediately
+  }
+
     await supabaseClient.auth.signOut();
     window.location.href = 'index.html';
   }
@@ -106,5 +123,5 @@ const Auth = (() => {
     });
   }
 
-  return { getUser, guard, signIn, signOut, isAdmin, isManager, isViewer, applyNavPermissions, ROLES };
+  return { getUser, guard, signIn, signOut, isAdmin, isManager, isViewer, applyNavPermissions, ROLES, startSessionTimeout };
 })();

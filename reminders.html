@@ -87,6 +87,7 @@
       currentUser = await Auth.guard('manager');
       if (!currentUser) return;
       UI.renderNav(currentUser);
+      Auth.startSessionTimeout();
       await loadData();
       attachListeners();
       UI.hideLoader();

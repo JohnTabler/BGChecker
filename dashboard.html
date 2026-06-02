@@ -95,6 +95,7 @@
       currentUser = await Auth.guard('viewer');
       if (!currentUser) return;
       UI.renderNav(currentUser);
+      Auth.startSessionTimeout();
       await loadDashboard();
       UI.hideLoader();
     }

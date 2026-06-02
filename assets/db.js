@@ -183,6 +183,22 @@ const DB = (() => {
     if (error) throw error;
     return data;
   }
+// ----------------------------------------------------------
+  // AUDIT LOG (admin only)
+  // ----------------------------------------------------------
+
+  async function getAuditLog(limit = 100) {
+    const { data, error } = await supabaseClient
+      .from('audit_log')
+      .select(`
+        id, action, table_name, record_id, old_data, new_data, created_at,
+        users ( email, full_name )
+      `)
+      .order('created_at', { ascending: false })
+      .limit(limit);
+    if (error) throw error;
+    return data;
+  }
 
   async function deleteUser(userId) {
     // Deletes from users table; auth record requires server-side admin API
@@ -204,5 +220,6 @@ const DB = (() => {
     getUsers,
     updateUserRole,
     deleteUser,
+    getAuditLog,
   };
 })();

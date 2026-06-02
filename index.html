@@ -60,6 +60,11 @@
   <script src="assets/auth.js"></script>
   <script>
     (async () => { const u = await Auth.getUser(); if (u) window.location.href = 'dashboard.html'; })();
+    // Show message if redirected due to inactivity
+    if (new URLSearchParams(window.location.search).get('reason') === 'timeout') {
+      document.getElementById('error-text').textContent = 'You were signed out due to inactivity.';
+      document.getElementById('error-msg').classList.remove('hidden');
+    }
 
     document.getElementById('sign-in-btn').addEventListener('click', async () => {
       const email    = document.getElementById('email').value.trim();

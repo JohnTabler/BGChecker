@@ -111,6 +111,7 @@
       currentUser = await Auth.guard('viewer');
       if (!currentUser) return;
       UI.renderNav(currentUser);
+      Auth.startSessionTimeout();
       if (mode === 'new') {
         if (!Auth.isManager(currentUser)) { window.location.href = 'records.html'; return; }
         setupNewMode();
