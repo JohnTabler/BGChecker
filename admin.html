@@ -73,7 +73,16 @@
       <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
         <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-gray-50">
           <h2 class="text-sm font-semibold text-gray-900">Audit Log</h2>
-          <span class="text-xs text-gray-400">Last 10 changes</span>
+          <div class="flex items-center gap-3">
+            <span class="text-xs text-gray-400">Last 10 changes</span>
+            <a href="audit-log.html"
+              class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-slate-700 bg-slate-100 rounded-lg hover:bg-slate-200 transition-colors">
+              View Full Log
+              <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+              </svg>
+            </a>
+          </div>
         </div>
         <div class="overflow-x-auto">
           <table class="w-full text-sm">
