@@ -73,7 +73,7 @@
       <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
         <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-gray-50">
           <h2 class="text-sm font-semibold text-gray-900">Audit Log</h2>
-          <span class="text-xs text-gray-400">Last 100 changes</span>
+          <span class="text-xs text-gray-400">Last 10 changes</span>
         </div>
         <div class="overflow-x-auto">
           <table class="w-full text-sm">
@@ -133,7 +133,7 @@
       await Promise.all([loadSettings(), loadUsers(), loadAuditLog()]);
       async function loadAuditLog() {
       try {
-        const logs = await DB.getAuditLog();
+        const logs = await DB.getAuditLog(10);
         const tbody = document.getElementById('audit-tbody');
         const actionColors = {
           INSERT: 'bg-emerald-100 text-emerald-800',
