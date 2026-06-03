@@ -148,7 +148,7 @@
       tbody.innerHTML = filtered.map(r => {
         const exp = new Date(r.expiration_date);
         const days = Math.ceil((exp-today)/(1000*60*60*24));
-        const daysDisplay = days<0 ? `<span class="text-red-600 font-medium text-xs">${Math.abs(days)}d ago</span>` : `<span class="text-amber-600 font-medium text-xs">${days until expiration}d</span>`;
+        const daysDisplay = days<0 ? `<span class="text-red-600 font-medium text-xs">${Math.abs(days)}d ago</span>` : `<span class="text-amber-600 font-medium text-xs">${days}d</span>`;
         return `<tr class="hover:bg-slate-50 transition-colors">
           <td class="px-5 py-3.5 font-medium text-gray-900 text-sm">${r.employee_name}</td>
           <td class="px-5 py-3.5 text-gray-600 text-sm">${r.project}</td>
