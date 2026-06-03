@@ -200,6 +200,50 @@ const DB = (() => {
     return data;
   }
 
+  // Filtered + paginated — used by audit-log.html
+  async function getAuditLogFiltered(filters = {}, page = 1, pageSize = 50) {
+    const from = (page - 1) * pageSize;
+    const to   = from + pageSize - 1;
+
+    let query = supabaseClient
+      .from('audit_log')
+      .select(`
+        id, action, table_name, record_id, old_data, new_data, created_at,
+        users ( email, full_name )
+      `, { count: 'exact' })
+      .order('created_at', { ascending: false })
+      .range(from, to);
+
+    if (filters.action)   query = query.eq('action', filters.action);
+    if (filters.userId)   query = query.eq('user_id', filters.userId);
+    if (filters.dateFrom) query = query.gte('created_at', filters.dateFrom);
+    if (filters.dateTo)   query = query.lte('created_at', filters.dateTo + 'T23:59:59');
+
+    const { data, count, error } = await query;
+    if (error) throw error;
+    return { data, count };
+  }
+
+  // Full export (no pagination) — used by CSV download
+  async function getAuditLogAll(filters = {}) {
+    let query = supabaseClient
+      .from('audit_log')
+      .select(`
+        id, action, table_name, record_id, old_data, new_data, created_at,
+        users ( email, full_name )
+      `)
+      .order('created_at', { ascending: false });
+
+    if (filters.action)   query = query.eq('action', filters.action);
+    if (filters.userId)   query = query.eq('user_id', filters.userId);
+    if (filters.dateFrom) query = query.gte('created_at', filters.dateFrom);
+    if (filters.dateTo)   query = query.lte('created_at', filters.dateTo + 'T23:59:59');
+
+    const { data, error } = await query;
+    if (error) throw error;
+    return data;
+  }
+
   async function deleteUser(userId) {
     // Deletes from users table; auth record requires server-side admin API
     const { error } = await supabaseClient.from('users').delete().eq('id', userId);
@@ -221,5 +265,7 @@ const DB = (() => {
     updateUserRole,
     deleteUser,
     getAuditLog,
+    getAuditLogFiltered,
+    getAuditLogAll,
   };
 })();
