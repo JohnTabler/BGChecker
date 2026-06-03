@@ -31,6 +31,7 @@
 
       <!-- Tabs -->
       <div class="flex gap-1 bg-gray-200 p-1 rounded-lg w-fit">
+        <button id="tab-all"      onclick="switchTab('all')"      class="px-4 py-1.5 rounded-md text-xs font-medium transition-colors text-gray-500 hover:text-gray-700">All</button>
         <button id="tab-upcoming" onclick="switchTab('upcoming')" class="px-4 py-1.5 rounded-md text-xs font-medium transition-colors bg-white text-gray-900 shadow-sm">Upcoming</button>
         <button id="tab-expired"  onclick="switchTab('expired')"  class="px-4 py-1.5 rounded-md text-xs font-medium transition-colors text-gray-500 hover:text-gray-700">Expired</button>
       </div>
@@ -109,8 +110,11 @@
 
     function switchTab(tab) {
       activeTab = tab;
-      document.getElementById('tab-upcoming').className = tab==='upcoming' ? 'px-4 py-1.5 rounded-md text-xs font-medium transition-colors bg-white text-gray-900 shadow-sm' : 'px-4 py-1.5 rounded-md text-xs font-medium transition-colors text-gray-500 hover:text-gray-700';
-      document.getElementById('tab-expired').className  = tab==='expired'  ? 'px-4 py-1.5 rounded-md text-xs font-medium transition-colors bg-white text-gray-900 shadow-sm' : 'px-4 py-1.5 rounded-md text-xs font-medium transition-colors text-gray-500 hover:text-gray-700';
+      const active   = 'px-4 py-1.5 rounded-md text-xs font-medium transition-colors bg-white text-gray-900 shadow-sm';
+      const inactive = 'px-4 py-1.5 rounded-md text-xs font-medium transition-colors text-gray-500 hover:text-gray-700';
+      document.getElementById('tab-all').className      = tab==='all'      ? active : inactive;
+      document.getElementById('tab-upcoming').className = tab==='upcoming' ? active : inactive;
+      document.getElementById('tab-expired').className  = tab==='expired'  ? active : inactive;
       applyFilters();
     }
 
@@ -119,7 +123,7 @@
       const p = document.getElementById('f-project').value.trim().toLowerCase();
       const v = document.getElementById('f-vendor').value.trim().toLowerCase();
       const s = document.getElementById('f-status').value;
-      const source = activeTab==='upcoming' ? upcomingAll : expiredAll;
+      const source = activeTab==='all' ? [...upcomingAll, ...expiredAll] : activeTab==='upcoming' ? upcomingAll : expiredAll;
       const filtered = source.filter(r => {
         if (e && !r.employee_name?.toLowerCase().includes(e)) return false;
         if (p && !r.project?.toLowerCase().includes(p)) return false;
