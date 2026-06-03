@@ -31,8 +31,8 @@
 
       <!-- Tabs -->
       <div class="flex gap-1 bg-gray-200 p-1 rounded-lg w-fit">
-        <button id="tab-all"      onclick="switchTab('all')"      class="px-4 py-1.5 rounded-md text-xs font-medium transition-colors text-gray-500 hover:text-gray-700">All</button>
-        <button id="tab-upcoming" onclick="switchTab('upcoming')" class="px-4 py-1.5 rounded-md text-xs font-medium transition-colors bg-white text-gray-900 shadow-sm">Upcoming</button>
+        <button id="tab-all"      onclick="switchTab('all')"      class="px-4 py-1.5 rounded-md text-xs font-medium transition-colors bg-white text-gray-900 shadow-sm">All</button>
+        <button id="tab-upcoming" onclick="switchTab('upcoming')" class="px-4 py-1.5 rounded-md text-xs font-medium transition-colors text-gray-500 hover:text-gray-700">Upcoming</button>
         <button id="tab-expired"  onclick="switchTab('expired')"  class="px-4 py-1.5 rounded-md text-xs font-medium transition-colors text-gray-500 hover:text-gray-700">Expired</button>
       </div>
 
@@ -85,7 +85,7 @@
   <script src="assets/ui.js"></script>
   <script src="assets/export.js"></script>
   <script>
-    let currentUser=null, upcomingAll=[], expiredAll=[], upcomingFiltered=[], expiredFiltered=[], activeTab='upcoming', reminderDays=20;
+    let currentUser=null, upcomingAll=[], expiredAll=[], upcomingFiltered=[], expiredFiltered=[], activeTab='all', reminderDays=20;
 
     async function init() {
       currentUser = await Auth.guard('manager');
