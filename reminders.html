@@ -85,7 +85,7 @@
   <script src="assets/ui.js"></script>
   <script src="assets/export.js"></script>
   <script>
-    let currentUser=null, upcomingAll=[], expiredAll=[], upcomingFiltered=[], expiredFiltered=[], activeTab='all', reminderDays=20;
+    let currentUser=null, upcomingAll=[], expiredAll=[], allFiltered=[], upcomingFiltered=[], expiredFiltered=[], activeTab='all', reminderDays=20;
 
     async function init() {
       currentUser = await Auth.guard('manager');
@@ -102,6 +102,7 @@
         const [upcoming, expired] = await Promise.all([DB.getExpiringRecords(), DB.getExpiredRecords()]);
         reminderDays = upcoming.days;
         upcomingAll = upcoming.records; expiredAll = expired;
+        allFiltered = [...upcomingAll, ...expiredAll];
         upcomingFiltered = [...upcomingAll]; expiredFiltered = [...expiredAll];
         document.getElementById('reminder-subtitle').textContent = `Showing checks expiring within ${reminderDays} days · ${upcomingAll.length} upcoming, ${expiredAll.length} expired`;
         renderTable();
@@ -131,13 +132,15 @@
         if (s && r.status !== s) return false;
         return true;
       });
-      if (activeTab==='upcoming') upcomingFiltered=filtered; else expiredFiltered=filtered;
+      if (activeTab==='all') allFiltered=filtered;
+      else if (activeTab==='upcoming') upcomingFiltered=filtered;
+      else expiredFiltered=filtered;
       renderTable();
     }
 
     function renderTable() {
-      const all = activeTab==='upcoming' ? upcomingAll : expiredAll;
-      const filtered = activeTab==='upcoming' ? upcomingFiltered : expiredFiltered;
+      const all = activeTab==='all' ? [...upcomingAll, ...expiredAll] : activeTab==='upcoming' ? upcomingAll : expiredAll;
+      const filtered = activeTab==='all' ? allFiltered : activeTab==='upcoming' ? upcomingFiltered : expiredFiltered;
       const tbody = document.getElementById('reminders-tbody');
       const today = new Date();
       document.getElementById('result-info').textContent = `${filtered.length} of ${all.length} records`;
