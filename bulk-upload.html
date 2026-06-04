@@ -5,96 +5,153 @@
   <title>BGTrack — Bulk Upload</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
-    body{font-family:'Inter',sans-serif;}
-    .cell-input{width:100%;padding:0.25rem 0.5rem;font-size:0.75rem;border:1px solid transparent;border-radius:0.375rem;outline:none;background:transparent;}
-    .cell-input:focus{border-color:#475569;background:white;}
-    .cell-input.field-error{border-color:#f87171!important;background:#fef2f2!important;}
+    *, *::before, *::after { box-sizing: border-box; }
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f0efe9; }
+    .page-header { background: #fff; border-bottom: 1px solid #e5e3de; padding: 0 24px; height: 52px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 20; }
+    .breadcrumb  { font-size: 0.875rem; display: flex; align-items: center; gap: 7px; }
+    .bc-link     { color: #9ca3af; text-decoration: none; font-weight: 500; transition: color 0.12s; }
+    .bc-link:hover { color: #4f46e5; }
+    .bc-sep      { color: #d1cec9; }
+    .bc-cur      { color: #111827; font-weight: 600; }
+    .card        { background: #fff; border: 1px solid #e5e3de; border-radius: 12px; }
+    .card-header { padding: 15px 20px; border-bottom: 1px solid #f0ede8; background: #faf9f7; display: flex; align-items: center; justify-content: space-between; }
+    .card-title  { font-size: 0.875rem; font-weight: 700; color: #111827; letter-spacing: -0.015em; }
+    .card-sub    { font-size: 0.75rem; color: #9ca3af; margin-top: 3px; }
+    .btn-primary  { display:inline-flex;align-items:center;gap:5px;padding:8px 14px;background:#4f46e5;color:#fff;font-size:0.8125rem;font-weight:600;border:none;border-radius:7px;cursor:pointer;font-family:inherit;letter-spacing:-0.01em;transition:background 0.15s; }
+    .btn-primary:hover  { background:#4338ca; }
+    .btn-primary:disabled { opacity:0.5;cursor:not-allowed; }
+    .btn-secondary{ display:inline-flex;align-items:center;gap:5px;padding:8px 14px;background:#f0efe9;color:#374151;font-size:0.8125rem;font-weight:600;border:1.5px solid #e5e3de;border-radius:7px;cursor:pointer;font-family:inherit;letter-spacing:-0.01em;transition:background 0.15s; }
+    .btn-secondary:hover { background:#e5e3de; }
+    .tbl-head { font-size: 0.6875rem; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.07em; padding: 10px 10px; text-align: left; }
+    .cell-input {
+      width: 100%;
+      padding: 5px 8px;
+      font-size: 0.8125rem;
+      font-family: inherit;
+      border: 1.5px solid transparent;
+      border-radius: 6px;
+      outline: none;
+      background: transparent;
+      color: #374151;
+      transition: border-color 0.12s, background 0.12s;
+    }
+    .cell-input:focus { border-color: #4f46e5; background: #fff; box-shadow: 0 0 0 2px rgba(79,70,229,0.08); }
+    .cell-input.field-error { border-color: #fca5a5 !important; background: #fef2f2 !important; }
+    .drop-zone {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      min-height: 140px;
+      border: 2px dashed #d1cec9;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+      background: #faf9f7;
+    }
+    .drop-zone:hover, .drop-zone.dragover { border-color: #4f46e5; background: #f5f3ff; }
   </style>
 </head>
-<body class="bg-slate-100 min-h-screen flex">
-  <aside id="sidebar" class="w-56 bg-slate-800 flex-shrink-0 flex flex-col min-h-screen fixed top-0 left-0 z-30"></aside>
+<body>
+  <aside id="sidebar" class="w-56 flex-shrink-0 flex flex-col min-h-screen fixed top-0 left-0 z-30" style="background:#0e1a33;"></aside>
   <div class="ml-56 flex-1 flex flex-col min-h-screen">
-    <header class="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between sticky top-0 z-20">
-      <div class="flex items-center gap-2">
-        <a href="records.html" class="text-gray-400 hover:text-blue-600 text-sm transition-colors">Records</a>
-        <span class="text-gray-300 text-sm">›</span>
-        <span class="text-gray-700 font-medium text-sm">Bulk Upload</span>
+
+    <header class="page-header">
+      <div id="profile-area" style="position:absolute;right:24px;top:50%;transform:translateY(-50%);"></div>
+      <div class="breadcrumb">
+        <a href="records.html" class="bc-link">Records</a>
+        <span class="bc-sep">›</span>
+        <span class="bc-cur">Bulk Upload</span>
       </div>
-      <div id="profile-area"></div>
     </header>
 
     <div id="page-loader" class="fixed inset-0 z-50 bg-white flex items-center justify-center">
-      <svg class="w-8 h-8 animate-spin text-slate-600" fill="none" viewBox="0 0 24 24">
-        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
-        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+      <svg class="w-8 h-8" style="animation:spin 0.9s linear infinite;color:#4f46e5;" fill="none" viewBox="0 0 24 24">
+        <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+        <circle style="opacity:.2" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+        <path style="opacity:.8" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
       </svg>
     </div>
 
-    <main class="p-6 space-y-5">
+    <main style="padding:22px 24px;display:flex;flex-direction:column;gap:18px;">
 
-      <!-- Step 1 -->
-      <div id="step-upload" class="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-        <div class="flex items-start justify-between mb-5">
+      <!-- Step 1: Upload -->
+      <div id="step-upload" class="card" style="padding:22px;">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:18px;">
           <div>
-            <h2 class="text-sm font-semibold text-gray-900">Step 1 — Upload CSV</h2>
-            <p class="text-xs text-gray-500 mt-0.5">Download the template, fill it in, then upload here.</p>
+            <h2 style="font-size:0.9375rem;font-weight:700;color:#111827;letter-spacing:-0.02em;margin:0 0 3px;">Step 1 — Upload CSV</h2>
+            <p style="font-size:0.8125rem;color:#9ca3af;margin:0;">Download the template, fill it in, then upload here.</p>
           </div>
-          <button id="download-template" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-700 border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors">⬇ Download Template</button>
+          <button id="download-template" class="btn-secondary">
+            <svg style="width:14px;height:14px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+            Download Template
+          </button>
         </div>
-        <label id="drop-zone" class="flex flex-col items-center justify-center w-full h-36 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-slate-400 hover:bg-slate-50/50 transition-colors">
-          <span class="text-2xl mb-1">📂</span>
-          <p class="text-sm font-medium text-gray-600">Drop CSV here or <span class="text-blue-600">browse</span></p>
-          <p class="text-xs text-gray-400 mt-0.5">CSV only · Max 5 MB</p>
+        <label id="drop-zone" class="drop-zone">
+          <div style="width:44px;height:44px;background:#f0efe9;border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:10px;">
+            <svg style="width:22px;height:22px;color:#6b7280;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75"><path stroke-linecap="round" stroke-linejoin="round" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          </div>
+          <p style="font-size:0.875rem;font-weight:600;color:#374151;margin:0 0 3px;">Drop CSV here or <span style="color:#4f46e5;">browse</span></p>
+          <p style="font-size:0.75rem;color:#9ca3af;margin:0;">CSV only · Max 5 MB</p>
           <input id="file-input" type="file" accept=".csv" class="hidden" />
         </label>
-        <div id="upload-error" class="hidden mt-3 px-4 py-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700"></div>
+        <div id="upload-error" class="hidden" style="margin-top:12px;padding:11px 13px;background:#fef2f2;border:1px solid #fca5a5;border-radius:8px;font-size:0.875rem;color:#dc2626;font-weight:500;"></div>
       </div>
 
-      <!-- Step 2 preview -->
-      <div id="step-preview" class="hidden space-y-4">
-        <div class="flex flex-wrap items-center gap-3">
-          <div class="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 border border-emerald-200 rounded-lg">
-            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-            <span class="text-xs font-medium text-emerald-800"><span id="valid-count">0</span> valid</span>
+      <!-- Step 2: Preview -->
+      <div id="step-preview" class="hidden" style="display:flex;flex-direction:column;gap:14px;">
+
+        <!-- Status bar -->
+        <div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px;">
+          <div style="display:inline-flex;align-items:center;gap:7px;padding:6px 12px;background:#ecfdf5;border:1px solid #6ee7b7;border-radius:8px;">
+            <span style="width:7px;height:7px;border-radius:50%;background:#10b981;flex-shrink:0;"></span>
+            <span style="font-size:0.8rem;font-weight:600;color:#065f46;"><span id="valid-count">0</span> valid</span>
           </div>
-          <div class="flex items-center gap-2 px-3 py-1.5 bg-red-50 border border-red-200 rounded-lg">
-            <span class="w-2 h-2 rounded-full bg-red-500"></span>
-            <span class="text-xs font-medium text-red-800"><span id="error-count">0</span> need attention</span>
+          <div style="display:inline-flex;align-items:center;gap:7px;padding:6px 12px;background:#fef2f2;border:1px solid #fca5a5;border-radius:8px;">
+            <span style="width:7px;height:7px;border-radius:50%;background:#ef4444;flex-shrink:0;"></span>
+            <span style="font-size:0.8rem;font-weight:600;color:#991b1b;"><span id="error-count">0</span> need attention</span>
           </div>
-          <p class="text-xs text-gray-400">Fix errors inline. Red fields are required or invalid.</p>
+          <p style="font-size:0.8125rem;color:#9ca3af;">Fix errors inline — red fields are required or invalid.</p>
         </div>
 
-        <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+        <!-- Table -->
+        <div class="card overflow-hidden">
           <div class="overflow-x-auto">
-            <table class="w-full text-sm">
+            <table style="width:100%;border-collapse:collapse;">
               <thead>
-                <tr class="border-b border-gray-200 bg-gray-50">
-                  <th class="w-8 px-3 py-2.5 text-xs font-semibold text-gray-400">#</th>
-                  <th class="text-left px-3 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Employee *</th>
-                  <th class="text-left px-3 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Project *</th>
-                  <th class="text-left px-3 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Date Ordered *</th>
-                  <th class="text-left px-3 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Date Processed</th>
-                  <th class="text-left px-3 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Vendor</th>
-                  <th class="text-left px-3 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status *</th>
-                  <th class="text-left px-3 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Expiration</th>
-                  <th class="w-8 px-3 py-2.5"></th>
+                <tr style="border-bottom:1px solid #f0ede8;background:#faf9f7;">
+                  <th class="tbl-head" style="width:36px;">#</th>
+                  <th class="tbl-head">Employee *</th>
+                  <th class="tbl-head">Project *</th>
+                  <th class="tbl-head">Date Ordered *</th>
+                  <th class="tbl-head">Date Processed</th>
+                  <th class="tbl-head">Vendor</th>
+                  <th class="tbl-head">Status *</th>
+                  <th class="tbl-head">Expiration</th>
+                  <th class="tbl-head" style="width:32px;"></th>
                 </tr>
               </thead>
-              <tbody id="preview-tbody" class="divide-y divide-gray-100"></tbody>
+              <tbody id="preview-tbody" style="font-family:inherit;"></tbody>
             </table>
           </div>
         </div>
 
-        <div class="flex items-center justify-between">
-          <button id="reupload-btn" class="px-4 py-2 text-xs font-medium text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">← Upload different file</button>
-          <div class="flex items-center gap-3">
-            <p id="import-note" class="text-xs text-gray-400"></p>
-            <button id="import-btn" class="px-5 py-2 text-xs font-medium text-white bg-slate-700 rounded-lg hover:bg-slate-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">Import Records</button>
+        <!-- Footer actions -->
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <button id="reupload-btn" class="btn-secondary">
+            <svg style="width:13px;height:13px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+            Upload different file
+          </button>
+          <div style="display:flex;align-items:center;gap:12px;">
+            <p id="import-note" style="font-size:0.8125rem;color:#9ca3af;"></p>
+            <button id="import-btn" class="btn-primary" style="padding:9px 18px;">Import Records</button>
           </div>
         </div>
       </div>
+
     </main>
   </div>
 
@@ -106,37 +163,22 @@
     let currentUser=null, parsedRows=[];
     const VALID_STATUSES=['Pending','Cleared','Failed','Cancelled'];
     const DATE_RE=/^\d{4}-\d{2}-\d{2}$/;
+    const MONTH_NAMES={january:'01',february:'02',march:'03',april:'04',may:'05',june:'06',july:'07',august:'08',september:'09',october:'10',november:'11',december:'12',jan:'01',feb:'02',mar:'03',apr:'04',jun:'06',jul:'07',aug:'08',sep:'09',oct:'10',nov:'11',dec:'12'};
 
-const MONTH_NAMES={january:'01',february:'02',march:'03',april:'04',may:'05',june:'06',july:'07',august:'08',september:'09',october:'10',november:'11',december:'12',jan:'01',feb:'02',mar:'03',apr:'04',jun:'06',jul:'07',aug:'08',sep:'09',oct:'10',nov:'11',dec:'12'};
-
-function parseDate(str) {
-  if (!str) return null;
-  str = str.trim();
-
-  // Already YYYY-MM-DD
-  if (DATE_RE.test(str)) return str;
-
-  // YYYY/MM/DD
-  let m = str.match(/^(\d{4})\/(\d{1,2})\/(\d{1,2})$/);
-  if (m) return `${m[1]}-${m[2].padStart(2,'0')}-${m[3].padStart(2,'0')}`;
-
-  // MM/DD/YYYY or M/D/YYYY
-  m = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-  if (m) return `${m[3]}-${m[1].padStart(2,'0')}-${m[2].padStart(2,'0')}`;
-
-  // MM-DD-YYYY
-  m = str.match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);
-  if (m) return `${m[3]}-${m[1].padStart(2,'0')}-${m[2].padStart(2,'0')}`;
-
-  // Month D, YYYY or Mon D, YYYY
-  m = str.match(/^([a-zA-Z]+)\s+(\d{1,2}),?\s+(\d{4})$/);
-  if (m) {
-    const mon = MONTH_NAMES[m[1].toLowerCase()];
-    if (mon) return `${m[3]}-${mon}-${m[2].padStart(2,'0')}`;
-  }
-
-  return null;
-}
+    function parseDate(str) {
+      if (!str) return null;
+      str = str.trim();
+      if (DATE_RE.test(str)) return str;
+      let m = str.match(/^(\d{4})\/(\d{1,2})\/(\d{1,2})$/);
+      if (m) return `${m[1]}-${m[2].padStart(2,'0')}-${m[3].padStart(2,'0')}`;
+      m = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+      if (m) return `${m[3]}-${m[1].padStart(2,'0')}-${m[2].padStart(2,'0')}`;
+      m = str.match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);
+      if (m) return `${m[3]}-${m[1].padStart(2,'0')}-${m[2].padStart(2,'0')}`;
+      m = str.match(/^([a-zA-Z]+)\s+(\d{1,2}),?\s+(\d{4})$/);
+      if (m) { const mon = MONTH_NAMES[m[1].toLowerCase()]; if (mon) return `${m[3]}-${mon}-${m[2].padStart(2,'0')}`; }
+      return null;
+    }
 
     async function init() {
       currentUser = await Auth.guard('manager');
@@ -148,43 +190,48 @@ function parseDate(str) {
     }
 
     document.getElementById('download-template').addEventListener('click', () => {
-      const csv=['employee_name,project,date_ordered,date_processed,vendor,status','Jane Smith,Project Alpha,2026-01-10,2026-01-15,HireRight,Cleared','John Doe,Project Beta,2026-02-01,,Sterling,Pending'].join('\r\n');
-      const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'})); a.download='bgtrack-template.csv'; a.click();
+      const csv = ['employee_name,project,date_ordered,date_processed,vendor,status','Jane Smith,Project Alpha,2026-01-10,2026-01-15,HireRight,Cleared','John Doe,Project Beta,2026-02-01,,Sterling,Pending'].join('\r\n');
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+      a.download = 'bgtrack-template.csv'; a.click();
     });
 
     function attachListeners() {
-      const zone=document.getElementById('drop-zone'), input=document.getElementById('file-input');
-      zone.addEventListener('click', ()=>input.click());
-      input.addEventListener('change', e=>handleFile(e.target.files[0]));
-      zone.addEventListener('dragover', e=>{e.preventDefault(); zone.classList.add('border-slate-400','bg-slate-50/50');});
-      zone.addEventListener('dragleave', ()=>zone.classList.remove('border-slate-400','bg-slate-50/50'));
-      zone.addEventListener('drop', e=>{e.preventDefault(); zone.classList.remove('border-slate-400','bg-slate-50/50'); handleFile(e.dataTransfer.files[0]);});
-      document.getElementById('reupload-btn').addEventListener('click', ()=>{
+      const zone  = document.getElementById('drop-zone');
+      const input = document.getElementById('file-input');
+      zone.addEventListener('click', () => input.click());
+      input.addEventListener('change', e => handleFile(e.target.files[0]));
+      zone.addEventListener('dragover',  e => { e.preventDefault(); zone.classList.add('dragover'); });
+      zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+      zone.addEventListener('drop', e => { e.preventDefault(); zone.classList.remove('dragover'); handleFile(e.dataTransfer.files[0]); });
+      document.getElementById('reupload-btn').addEventListener('click', () => {
         document.getElementById('step-preview').classList.add('hidden');
+        document.getElementById('step-preview').style.display = 'none';
         document.getElementById('step-upload').classList.remove('hidden');
-        document.getElementById('file-input').value=''; parsedRows=[];
+        document.getElementById('file-input').value = ''; parsedRows = [];
       });
       document.getElementById('import-btn').addEventListener('click', importRecords);
     }
 
     function handleFile(file) {
-      const errEl=document.getElementById('upload-error'); errEl.classList.add('hidden');
+      const errEl = document.getElementById('upload-error'); errEl.classList.add('hidden');
       if (!file) return;
       if (!file.name.endsWith('.csv')) { errEl.textContent='Please upload a .csv file.'; errEl.classList.remove('hidden'); return; }
-      if (file.size>5*1024*1024) { errEl.textContent='File exceeds 5 MB.'; errEl.classList.remove('hidden'); return; }
-      const reader=new FileReader();
-      reader.onload=e=>{
-        const lines=e.target.result.split(/\r?\n/).filter(l=>l.trim());
-        if (lines.length<2) { errEl.textContent='File appears empty.'; errEl.classList.remove('hidden'); return; }
-        const headers=lines[0].split(',').map(h=>h.trim().toLowerCase().replace(/\s+/g,'_'));
-        parsedRows=lines.slice(1).map((line,i)=>{
-          const values=parseCSVLine(line); const row={};
-          headers.forEach((h,idx)=>row[h]=(values[idx]||'').trim());
-          row._index=i+2; return row;
-        }).filter(r=>Object.values(r).some(v=>v&&v!==String(r._index)));
+      if (file.size > 5*1024*1024) { errEl.textContent='File exceeds 5 MB.'; errEl.classList.remove('hidden'); return; }
+      const reader = new FileReader();
+      reader.onload = e => {
+        const lines = e.target.result.split(/\r?\n/).filter(l => l.trim());
+        if (lines.length < 2) { errEl.textContent='File appears empty.'; errEl.classList.remove('hidden'); return; }
+        const headers = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/\s+/g,'_'));
+        parsedRows = lines.slice(1).map((line,i) => {
+          const values = parseCSVLine(line); const row = {};
+          headers.forEach((h,idx) => row[h]=(values[idx]||'').trim());
+          row._index = i+2; return row;
+        }).filter(r => Object.values(r).some(v => v && v !== String(r._index)));
         renderPreview();
         document.getElementById('step-upload').classList.add('hidden');
-        document.getElementById('step-preview').classList.remove('hidden');
+        const sp = document.getElementById('step-preview');
+        sp.classList.remove('hidden'); sp.style.display = 'flex';
       };
       reader.readAsText(file);
     }
@@ -200,28 +247,16 @@ function parseDate(str) {
     }
 
     function validateRow(row) {
-  const errors={};
-  if(!row.employee_name) errors.employee_name='Required';
-  if(!row.project) errors.project='Required';
-
-  if(!row.date_ordered) {
-    errors.date_ordered='Required';
-  } else {
-    const parsed=parseDate(row.date_ordered);
-    if(!parsed) errors.date_ordered='Unrecognized date format';
-    else row.date_ordered=parsed; // normalize in-place
-  }
-
-  if(row.date_processed) {
-    const parsed=parseDate(row.date_processed);
-    if(!parsed) errors.date_processed='Unrecognized date format';
-    else row.date_processed=parsed; // normalize in-place
-  }
-
-  if(!row.status) errors.status='Required';
-  else if(!VALID_STATUSES.includes(row.status)) errors.status=`Must be: ${VALID_STATUSES.join(', ')}`;
-  return errors;
-}
+      const errors={};
+      if(!row.employee_name) errors.employee_name='Required';
+      if(!row.project) errors.project='Required';
+      if(!row.date_ordered) { errors.date_ordered='Required'; }
+      else { const p=parseDate(row.date_ordered); if(!p) errors.date_ordered='Unrecognized date'; else row.date_ordered=p; }
+      if(row.date_processed) { const p=parseDate(row.date_processed); if(!p) errors.date_processed='Unrecognized date'; else row.date_processed=p; }
+      if(!row.status) errors.status='Required';
+      else if(!VALID_STATUSES.includes(row.status)) errors.status=`Must be: ${VALID_STATUSES.join(', ')}`;
+      return errors;
+    }
 
     function computeExpiration(dp) {
       if(!dp||!DATE_RE.test(dp)) return '';
@@ -229,46 +264,47 @@ function parseDate(str) {
     }
 
     function renderPreview() {
-      const tbody=document.getElementById('preview-tbody');
-      let v=0,err=0;
-      tbody.innerHTML=parsedRows.map((row,rowIdx)=>{
+      const tbody = document.getElementById('preview-tbody');
+      let v=0, err=0;
+      tbody.innerHTML = parsedRows.map((row,rowIdx) => {
         const errors=validateRow(row); const hasError=Object.keys(errors).length>0;
         if(hasError) err++; else v++;
         const exp=computeExpiration(row.date_processed);
+        const rowBg = hasError ? 'background:#fff9f9;' : '';
         return `
-          <tr class="${hasError?'bg-red-50/40':''}" data-row="${rowIdx}">
-            <td class="px-3 py-2 text-xs text-gray-400">${row._index}</td>
+          <tr style="${rowBg}border-bottom:1px solid #f5f4f1;" data-row="${rowIdx}">
+            <td style="padding:6px 10px;font-size:0.75rem;color:#9ca3af;text-align:center;">${row._index}</td>
             ${editableCell(rowIdx,'employee_name',row.employee_name,errors.employee_name)}
             ${editableCell(rowIdx,'project',row.project,errors.project)}
             ${editableCell(rowIdx,'date_ordered',row.date_ordered,errors.date_ordered,'date')}
             ${editableCell(rowIdx,'date_processed',row.date_processed,errors.date_processed,'date')}
             ${editableCell(rowIdx,'vendor',row.vendor,null)}
             ${statusCell(rowIdx,row.status,errors.status)}
-            <td class="px-3 py-2 text-xs text-gray-500" id="exp-${rowIdx}">${exp||'—'}</td>
-            <td class="px-3 py-2"><button onclick="removeRow(${rowIdx})" class="text-gray-300 hover:text-red-400 transition-colors" title="Remove">✕</button></td>
+            <td style="padding:6px 10px;font-size:0.75rem;color:#6b7280;" id="exp-${rowIdx}">${exp||'—'}</td>
+            <td style="padding:6px 10px;text-align:center;"><button onclick="removeRow(${rowIdx})" style="width:22px;height:22px;border:none;background:none;cursor:pointer;color:#d1cec9;font-size:1rem;line-height:1;border-radius:4px;transition:all 0.12s;" onmouseover="this.style.color='#ef4444';this.style.background='#fef2f2'" onmouseout="this.style.color='#d1cec9';this.style.background='none'" title="Remove">✕</button></td>
           </tr>
-          ${hasError?`<tr data-row-err="${rowIdx}" class="bg-red-50/40"><td></td><td colspan="8" class="px-3 pb-1.5"><p class="text-xs text-red-600">${Object.entries(errors).map(([f,m])=>`<b>${f.replace(/_/g,' ')}:</b> ${m}`).join(' · ')}</p></td></tr>`:''}`;
+          ${hasError ? `<tr data-row-err="${rowIdx}" style="background:#fff9f9;"><td></td><td colspan="8" style="padding:0 10px 8px;font-size:0.75rem;color:#ef4444;">${Object.entries(errors).map(([f,m])=>`<b>${f.replace(/_/g,' ')}:</b> ${m}`).join(' · ')}</td></tr>` : ''}`;
       }).join('');
-      updateCounts(v,err);
-      document.querySelectorAll('[data-row][data-field]').forEach(el=>el.addEventListener('change',handleCellChange));
+      updateCounts(v, err);
+      document.querySelectorAll('[data-row][data-field]').forEach(el => el.addEventListener('change', handleCellChange));
     }
 
-    function editableCell(rowIdx,field,value,errMsg,inputType='text') {
-      return `<td class="px-1 py-1"><input type="${inputType}" data-row="${rowIdx}" data-field="${field}" class="cell-input${errMsg?' field-error':''}" value="${(value||'').replace(/"/g,'&quot;')}" /></td>`;
+    function editableCell(rowIdx, field, value, errMsg, inputType='text') {
+      return `<td style="padding:4px 4px;"><input type="${inputType}" data-row="${rowIdx}" data-field="${field}" class="cell-input${errMsg?' field-error':''}" value="${(value||'').replace(/"/g,'&quot;')}" /></td>`;
     }
-    function statusCell(rowIdx,value,errMsg) {
+    function statusCell(rowIdx, value, errMsg) {
       const opts=['',...VALID_STATUSES].map(s=>`<option value="${s}" ${s===value?'selected':''}>${s||'Select…'}</option>`).join('');
-      return `<td class="px-1 py-1"><select data-row="${rowIdx}" data-field="status" class="cell-input${errMsg?' field-error':''}">${opts}</select></td>`;
+      return `<td style="padding:4px 4px;"><select data-row="${rowIdx}" data-field="status" class="cell-input${errMsg?' field-error':''}">${opts}</select></td>`;
     }
 
     function handleCellChange(e) {
       const rowIdx=parseInt(e.target.dataset.row), field=e.target.dataset.field;
       parsedRows[rowIdx][field]=e.target.value.trim();
-      if(field==='date_processed') { const expEl=document.getElementById(`exp-${rowIdx}`); if(expEl) expEl.textContent=computeExpiration(parsedRows[rowIdx].date_processed)||'—'; }
+      if(field==='date_processed') { const el=document.getElementById(`exp-${rowIdx}`); if(el) el.textContent=computeExpiration(parsedRows[rowIdx].date_processed)||'—'; }
       const errors=validateRow(parsedRows[rowIdx]); const hasError=Object.keys(errors).length>0;
-      const tr=document.querySelector(`tr[data-row="${rowIdx}"]`); if(tr) tr.className=hasError?'bg-red-50/40':'';
+      const tr=document.querySelector(`tr[data-row="${rowIdx}"]`); if(tr) tr.style.background=hasError?'#fff9f9':'';
       const errTr=document.querySelector(`tr[data-row-err="${rowIdx}"]`);
-      if(errTr) errTr.innerHTML=hasError?`<td></td><td colspan="8" class="px-3 pb-1.5"><p class="text-xs text-red-600">${Object.entries(errors).map(([f,m])=>`<b>${f.replace(/_/g,' ')}:</b> ${m}`).join(' · ')}</p></td>`:'<td></td><td colspan="8"></td>';
+      if(errTr) errTr.children[1].textContent=hasError?Object.entries(errors).map(([f,m])=>`${f.replace(/_/g,' ')}: ${m}`).join(' · '):'';
       e.target.className=errors[field]?'cell-input field-error':'cell-input';
       let v=0,err=0; parsedRows.forEach(r=>Object.keys(validateRow(r)).length>0?err++:v++);
       updateCounts(v,err);
@@ -276,11 +312,11 @@ function parseDate(str) {
 
     function removeRow(rowIdx) { parsedRows.splice(rowIdx,1); renderPreview(); }
 
-    function updateCounts(valid,errors) {
-      document.getElementById('valid-count').textContent=valid;
-      document.getElementById('error-count').textContent=errors;
-      const btn=document.getElementById('import-btn');
-      if(errors>0){btn.textContent='Import Valid Records';document.getElementById('import-note').textContent=`${errors} row${errors>1?'s':''} with errors will be skipped.`;btn.disabled=valid===0;}
+    function updateCounts(valid, errors) {
+      document.getElementById('valid-count').textContent = valid;
+      document.getElementById('error-count').textContent = errors;
+      const btn = document.getElementById('import-btn');
+      if(errors>0){btn.textContent=`Import ${valid} Valid Record${valid!==1?'s':''}`;document.getElementById('import-note').textContent=`${errors} row${errors>1?'s':''} with errors will be skipped.`;btn.disabled=valid===0;}
       else{btn.textContent=`Import ${valid} Record${valid!==1?'s':''}`;document.getElementById('import-note').textContent='';btn.disabled=valid===0;}
     }
 

@@ -5,125 +5,166 @@
   <title>BGTrack — Admin</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <style>body{font-family:'Inter',sans-serif;}</style>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f0efe9; }
+    .page-header  { background: #fff; border-bottom: 1px solid #e5e3de; padding: 0 24px; height: 52px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 20; }
+    .page-title   { font-size: 0.9375rem; font-weight: 700; color: #111827; letter-spacing: -0.02em; }
+    .card         { background: #fff; border: 1px solid #e5e3de; border-radius: 12px; overflow: hidden; }
+    .card-header  { padding: 14px 20px; border-bottom: 1px solid #f0ede8; background: #faf9f7; }
+    .card-title   { font-size: 0.875rem; font-weight: 700; color: #111827; letter-spacing: -0.015em; }
+    .card-sub     { font-size: 0.75rem; color: #9ca3af; margin-top: 3px; }
+    .card-body    { padding: 18px 20px; }
+    .field-label  { display: block; font-size: 0.6875rem; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 5px; }
+    .field-input  {
+      padding: 9px 12px;
+      border: 1.5px solid #e5e3de;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      background: #fff;
+      color: #111827;
+    }
+    .field-input:focus { border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79,70,229,0.08); }
+    .btn-primary  { display:inline-flex;align-items:center;gap:5px;padding:8px 16px;background:#4f46e5;color:#fff;font-size:0.875rem;font-weight:600;border:none;border-radius:8px;cursor:pointer;font-family:inherit;letter-spacing:-0.01em;transition:background 0.15s; }
+    .btn-primary:hover { background:#4338ca; }
+    .btn-secondary{ display:inline-flex;align-items:center;gap:5px;padding:8px 16px;background:#f0efe9;color:#374151;font-size:0.875rem;font-weight:600;border:none;border-radius:8px;cursor:pointer;font-family:inherit;letter-spacing:-0.01em;transition:background 0.15s; }
+    .btn-secondary:hover { background:#e5e3de; }
+    .tbl-head { font-size: 0.6875rem; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.07em; padding: 11px 16px; text-align: left; }
+    .tbl-row  { border-bottom: 1px solid #f5f4f1; transition: background 0.1s; }
+    .tbl-row:last-child { border-bottom: none; }
+    .tbl-row:hover { background: #f9f8f5; }
+    .tbl-cell { padding: 11px 16px; font-size: 0.875rem; color: #374151; }
+    .action-link { font-size: 0.75rem; font-weight: 600; background: none; border: none; cursor: pointer; font-family: inherit; transition: color 0.12s; }
+  </style>
 </head>
-<body class="bg-slate-100 min-h-screen flex">
-  <aside id="sidebar" class="w-56 bg-slate-800 flex-shrink-0 flex flex-col min-h-screen fixed top-0 left-0 z-30"></aside>
+<body>
+  <aside id="sidebar" class="w-56 flex-shrink-0 flex flex-col min-h-screen fixed top-0 left-0 z-30" style="background:#0e1a33;"></aside>
   <div class="ml-56 flex-1 flex flex-col min-h-screen">
-    <header class="bg-white border-b border-gray-200 px-6 py-3 sticky top-0 z-20">
-      <h1 class="text-base font-semibold text-gray-800">Settings & Users</h1>
+
+    <header class="page-header">
+      <h1 class="page-title">Settings &amp; Users</h1>
       <div id="profile-area"></div>
     </header>
 
     <div id="page-loader" class="fixed inset-0 z-50 bg-white flex items-center justify-center">
-      <svg class="w-8 h-8 animate-spin text-slate-600" fill="none" viewBox="0 0 24 24">
-        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
-        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+      <svg class="w-8 h-8" style="animation:spin 0.9s linear infinite;color:#4f46e5;" fill="none" viewBox="0 0 24 24">
+        <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+        <circle style="opacity:.2" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+        <path style="opacity:.8" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
       </svg>
     </div>
 
-    <main class="p-6 max-w-3xl space-y-5">
+    <main style="padding:22px 24px;max-width:780px;display:flex;flex-direction:column;gap:18px;">
 
-      <!-- Reminder settings -->
-      <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-        <div class="px-5 py-4 border-b border-gray-100 bg-gray-50">
-          <h2 class="text-sm font-semibold text-gray-900">Reminder Settings</h2>
-          <p class="text-xs text-gray-500 mt-0.5">Records expiring within this window appear on the Reminders tab.</p>
+      <!-- Reminder Settings -->
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">Reminder Settings</h2>
+          <p class="card-sub">Records expiring within this window appear on the Reminders page.</p>
         </div>
-        <div class="p-5">
-          <div class="flex items-end gap-3">
+        <div class="card-body">
+          <div style="display:flex;align-items:flex-end;gap:12px;">
             <div>
-              <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Days before expiration</label>
-              <div class="flex items-center gap-2">
-                <input id="reminder-days" type="number" min="1" max="365"
-                  class="w-24 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-slate-400" placeholder="20" />
-                <span class="text-sm text-gray-500">days</span>
+              <label class="field-label">Days before expiration</label>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <input id="reminder-days" type="number" min="1" max="365" class="field-input" style="width:90px;" placeholder="20" />
+                <span style="font-size:0.875rem;color:#6b7280;">days</span>
               </div>
             </div>
-            <button id="save-settings" class="px-4 py-2 text-sm font-medium text-white bg-slate-700 rounded-lg hover:bg-slate-800 transition-colors">Save</button>
+            <button id="save-settings" class="btn-primary">Save</button>
           </div>
-          <p id="settings-note" class="text-xs text-gray-400 mt-2"></p>
+          <p id="settings-note" style="font-size:0.75rem;color:#9ca3af;margin-top:8px;"></p>
         </div>
       </div>
 
-      <!-- Invite user -->
-      <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-        <div class="px-5 py-4 border-b border-gray-100 bg-gray-50">
-          <h2 class="text-sm font-semibold text-gray-900">Invite User</h2>
-          <p class="text-xs text-gray-500 mt-0.5">Send a magic-link invite to a new user.</p>
+      <!-- Invite User -->
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">Invite User</h2>
+          <p class="card-sub">Send an invite email to a new user to set up their account.</p>
         </div>
-        <div class="p-5">
-          <div class="flex flex-wrap gap-3">
-            <input id="invite-name"  type="text"  placeholder="Full name"         class="flex-1 min-w-0 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-slate-400"/>
-            <input id="invite-email" type="email" placeholder="email@company.com" class="flex-1 min-w-0 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-slate-400"/>
-            <select id="invite-role" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-slate-400 text-gray-700">
-              <option value="viewer">Viewer</option>
-              <option value="manager">Manager</option>
-              <option value="admin">Admin</option>
-            </select>
-            <button id="invite-btn" class="px-4 py-2 text-sm font-medium text-white bg-slate-700 rounded-lg hover:bg-slate-800 transition-colors">Send Invite</button>
+        <div class="card-body">
+          <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;">
+            <div style="flex:1;min-width:140px;">
+              <label class="field-label">Full Name</label>
+              <input id="invite-name"  type="text"  placeholder="Jane Smith"          class="field-input" style="width:100%;" />
+            </div>
+            <div style="flex:2;min-width:180px;">
+              <label class="field-label">Email Address</label>
+              <input id="invite-email" type="email" placeholder="jane@company.com"    class="field-input" style="width:100%;" />
+            </div>
+            <div>
+              <label class="field-label">Role</label>
+              <select id="invite-role" class="field-input" style="padding-right:32px;">
+                <option value="viewer">Viewer</option>
+                <option value="manager">Manager</option>
+                <option value="admin">Admin</option>
+              </select>
+            </div>
+            <button id="invite-btn" class="btn-primary" style="margin-bottom:0;">Send Invite</button>
           </div>
-          <div id="invite-error" class="hidden mt-2 text-xs text-red-600"></div>
-          <p class="text-xs text-gray-400 mt-2">Users receive a Supabase magic-link email to set their password on first login.</p>
+          <div id="invite-error" class="hidden" style="margin-top:10px;font-size:0.8125rem;color:#ef4444;font-weight:500;"></div>
+          <p style="font-size:0.75rem;color:#9ca3af;margin-top:9px;">Users receive an email to set their password on first login.</p>
         </div>
       </div>
 
-<!-- Audit Log -->
-      <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-        <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-gray-50">
-          <h2 class="text-sm font-semibold text-gray-900">Audit Log</h2>
-          <div class="flex items-center gap-3">
-            <span class="text-xs text-gray-400">Last 10 changes</span>
-            <a href="audit-log.html"
-              class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-slate-700 bg-slate-100 rounded-lg hover:bg-slate-200 transition-colors">
-              View Full Log
-              <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
-              </svg>
-            </a>
+      <!-- Audit Log (preview) -->
+      <div class="card">
+        <div style="padding:14px 20px;border-bottom:1px solid #f0ede8;background:#faf9f7;display:flex;align-items:center;justify-content:space-between;">
+          <div>
+            <h2 class="card-title">Audit Log</h2>
+            <p class="card-sub">Last 10 changes</p>
           </div>
+          <a href="audit-log.html" style="display:inline-flex;align-items:center;gap:5px;padding:6px 12px;font-size:0.8rem;font-weight:600;color:#374151;background:#f0efe9;border-radius:7px;text-decoration:none;transition:background 0.15s;" onmouseover="this.style.background='#e5e3de'" onmouseout="this.style.background='#f0efe9'">
+            View Full Log
+            <svg style="width:12px;height:12px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+          </a>
         </div>
         <div class="overflow-x-auto">
-          <table class="w-full text-sm">
+          <table style="width:100%;border-collapse:collapse;">
             <thead>
-              <tr class="border-b border-gray-200 bg-gray-50">
-                <th class="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">When</th>
-                <th class="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">User</th>
-                <th class="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Action</th>
-                <th class="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Record</th>
+              <tr style="border-bottom:1px solid #f0ede8;background:#faf9f7;">
+                <th class="tbl-head">When</th>
+                <th class="tbl-head">User</th>
+                <th class="tbl-head">Action</th>
+                <th class="tbl-head">Record</th>
               </tr>
             </thead>
-            <tbody id="audit-tbody" class="divide-y divide-gray-100">
-              <tr><td colspan="4" class="text-center py-8 text-gray-400 text-sm">Loading…</td></tr>
+            <tbody id="audit-tbody">
+              <tr><td colspan="4" style="text-align:center;padding:32px;font-size:0.875rem;color:#9ca3af;">Loading…</td></tr>
             </tbody>
           </table>
         </div>
       </div>
 
-      <!-- Users table -->
-      <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-        <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-gray-50">
-          <h2 class="text-sm font-semibold text-gray-900">Users</h2>
-          <span id="user-count" class="text-xs text-gray-400"></span>
+      <!-- Users -->
+      <div class="card">
+        <div style="padding:14px 20px;border-bottom:1px solid #f0ede8;background:#faf9f7;display:flex;align-items:center;justify-content:space-between;">
+          <h2 class="card-title">Users</h2>
+          <span id="user-count" style="font-size:0.75rem;color:#9ca3af;font-weight:500;"></span>
         </div>
         <div class="overflow-x-auto">
-          <table class="w-full text-sm">
+          <table style="width:100%;border-collapse:collapse;">
             <thead>
-              <tr class="border-b border-gray-200 bg-gray-50">
-                <th class="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Name</th>
-                <th class="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Email</th>
-                <th class="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Role</th>
-                <th class="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Added</th>
-                <th class="px-5 py-3"></th>
+              <tr style="border-bottom:1px solid #f0ede8;background:#faf9f7;">
+                <th class="tbl-head">Name</th>
+                <th class="tbl-head">Email</th>
+                <th class="tbl-head">Role</th>
+                <th class="tbl-head">Added</th>
+                <th class="tbl-head" style="width:150px;"></th>
               </tr>
             </thead>
-            <tbody id="users-tbody" class="divide-y divide-gray-100">
-              <tr><td colspan="5" class="text-center py-10 text-gray-400 text-sm">Loading users…</td></tr>
+            <tbody id="users-tbody">
+              <tr><td colspan="5" style="text-align:center;padding:40px;font-size:0.875rem;color:#9ca3af;">Loading users…</td></tr>
             </tbody>
           </table>
         </div>
       </div>
+
     </main>
   </div>
 
@@ -140,222 +181,187 @@
       UI.renderNav(currentUser);
       Auth.startSessionTimeout();
       await Promise.all([loadSettings(), loadUsers(), loadAuditLog()]);
-      async function loadAuditLog() {
-      try {
-        const logs = await DB.getAuditLog(10);
-        const tbody = document.getElementById('audit-tbody');
-        const actionColors = {
-          INSERT: 'bg-emerald-100 text-emerald-800',
-          UPDATE: 'bg-blue-100 text-blue-800',
-          DELETE: 'bg-red-100 text-red-800',
-        };
-        if (!logs.length) {
-          tbody.innerHTML = `<tr><td colspan="4" class="text-center py-8 text-gray-400 text-sm">No activity yet.</td></tr>`;
-          return;
-        }
-        tbody.innerHTML = logs.map(l => {
-          const name = l.users?.full_name || l.users?.email || 'Unknown';
-          const employee = l.new_data?.employee_name || l.old_data?.employee_name || '—';
-          const cls = actionColors[l.action] || 'bg-gray-100 text-gray-600';
-          const when = new Date(l.created_at).toLocaleString('en-US', { month:'short', day:'numeric', hour:'numeric', minute:'2-digit' });
-          return `<tr class="hover:bg-slate-50 transition-colors">
-            <td class="px-5 py-3 text-xs text-gray-500">${when}</td>
-            <td class="px-5 py-3 text-xs text-gray-700">${name}</td>
-            <td class="px-5 py-3"><span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${cls}">${l.action}</span></td>
-            <td class="px-5 py-3 text-xs text-gray-600">${employee}</td>
-          </tr>`;
-        }).join('');
-      } catch(err) { console.error('Audit log failed:', err); }
-    }
       attachListeners();
       UI.hideLoader();
     }
 
+    async function loadAuditLog() {
+      try {
+        const logs = await DB.getAuditLog(10);
+        const tbody = document.getElementById('audit-tbody');
+        const actionCfg = {
+          INSERT: { bg:'#ecfdf5', text:'#065f46', dot:'#10b981' },
+          UPDATE: { bg:'#eff6ff', text:'#1e40af', dot:'#3b82f6' },
+          DELETE: { bg:'#fef2f2', text:'#991b1b', dot:'#ef4444' },
+        };
+        if (!logs.length) {
+          tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;padding:32px;font-size:0.875rem;color:#9ca3af;">No activity yet.</td></tr>`;
+          return;
+        }
+        tbody.innerHTML = logs.map(l => {
+          const name     = l.users?.full_name || l.users?.email || 'Unknown';
+          const employee = l.new_data?.employee_name || l.old_data?.employee_name || '—';
+          const c        = actionCfg[l.action] || { bg:'#f9fafb', text:'#4b5563', dot:'#9ca3af' };
+          const when     = new Date(l.created_at).toLocaleString('en-US', { month:'short', day:'numeric', hour:'numeric', minute:'2-digit' });
+          return `<tr class="tbl-row">
+            <td class="tbl-cell" style="color:#6b7280;font-size:0.8125rem;">${when}</td>
+            <td class="tbl-cell" style="font-size:0.8125rem;">${name}</td>
+            <td class="tbl-cell"><span style="display:inline-flex;align-items:center;gap:5px;padding:3px 9px 3px 7px;border-radius:999px;font-size:0.6875rem;font-weight:600;background:${c.bg};color:${c.text};"><span style="width:5px;height:5px;border-radius:50%;background:${c.dot};flex-shrink:0;"></span>${l.action}</span></td>
+            <td class="tbl-cell" style="font-size:0.8125rem;">${employee}</td>
+          </tr>`;
+        }).join('');
+      } catch(err) { console.error('Audit log failed:', err); }
+    }
+
     async function loadSettings() {
       try {
-        const s=await DB.getSettings();
-        if(s){ document.getElementById('reminder-days').value=s.reminder_days; document.getElementById('settings-note').textContent=`Last updated ${UI.formatDate(s.updated_at)}`; }
-      } catch(err){console.error('Settings load failed:',err);}
+        const s = await DB.getSettings();
+        if (s) {
+          document.getElementById('reminder-days').value = s.reminder_days;
+          document.getElementById('settings-note').textContent = `Last updated ${UI.formatDate(s.updated_at)}`;
+        }
+      } catch(err) { console.error('Settings load failed:', err); }
     }
 
     async function loadUsers() {
       try {
-        users=await DB.getUsers(); renderUsers();
-      } catch(err){UI.toast('Failed to load users.','error');console.error(err);}
+        users = await DB.getUsers(); renderUsers();
+      } catch(err) { UI.toast('Failed to load users.','error'); console.error(err); }
     }
 
     function renderUsers() {
-      const tbody=document.getElementById('users-tbody');
-      document.getElementById('user-count').textContent=`${users.length} user${users.length!==1?'s':''}`;
-      if(!users.length){tbody.innerHTML=`<tr><td colspan="5" class="text-center py-10 text-gray-400 text-sm">No users found.</td></tr>`;return;}
-      const roleColors={admin:'bg-slate-100 text-slate-800',manager:'bg-sky-100 text-sky-800',viewer:'bg-gray-100 text-gray-600'};
-      tbody.innerHTML=users.map(u=>{
-        const isSelf=u.id===currentUser.id;
-        const cls=roleColors[u.role]||'bg-gray-100 text-gray-600';
-        return `<tr class="hover:bg-slate-50 transition-colors">
-          <td class="px-5 py-3.5 font-medium text-gray-900 text-sm">${u.full_name||'—'}${isSelf?'<span class="ml-2 text-xs text-gray-400">(you)</span>':''}</td>
-          <td class="px-5 py-3.5 text-gray-600 text-sm">${u.email}</td>
-          <td class="px-5 py-3.5">
-            ${isSelf
-              ? `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${cls} capitalize">${u.role}</span>`
-              : `<select data-user-id="${u.id}" onchange="changeRole('${u.id}',this.value)" class="px-2.5 py-1 border border-gray-200 rounded-lg text-xs font-medium focus:outline-none focus:ring-2 focus:ring-slate-400 ${cls}">
-                  <option value="viewer" ${u.role==='viewer'?'selected':''}>Viewer</option>
-                  <option value="manager" ${u.role==='manager'?'selected':''}>Manager</option>
-                  <option value="admin" ${u.role==='admin'?'selected':''}>Admin</option>
-                </select>`}
+      const tbody = document.getElementById('users-tbody');
+      document.getElementById('user-count').textContent = `${users.length} user${users.length!==1?'s':''}`;
+      if (!users.length) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:40px;font-size:0.875rem;color:#9ca3af;">No users found.</td></tr>`;
+        return;
+      }
+      const roleCfg = {
+        admin:   { bg:'#f0f0ff', text:'#3730a3', dot:'#6366f1' },
+        manager: { bg:'#f0f9ff', text:'#075985', dot:'#0ea5e9' },
+        viewer:  { bg:'#f9fafb', text:'#4b5563', dot:'#9ca3af' },
+      };
+      tbody.innerHTML = users.map(u => {
+        const isSelf = u.id === currentUser.id;
+        const c      = roleCfg[u.role] || roleCfg.viewer;
+        const roleBadge = `<span style="display:inline-flex;align-items:center;gap:5px;padding:3px 9px 3px 7px;border-radius:999px;font-size:0.6875rem;font-weight:600;background:${c.bg};color:${c.text};"><span style="width:5px;height:5px;border-radius:50%;background:${c.dot};flex-shrink:0;"></span>${u.role}</span>`;
+        return `<tr class="tbl-row">
+          <td class="tbl-cell" style="font-weight:600;color:#111827;">${u.full_name||'—'}${isSelf?'<span style="margin-left:7px;font-size:0.7rem;color:#9ca3af;font-weight:500;">(you)</span>':''}</td>
+          <td class="tbl-cell" style="color:#6b7280;">${u.email}</td>
+          <td class="tbl-cell">
+            ${isSelf ? roleBadge : `<select data-user-id="${u.id}" onchange="changeRole('${u.id}',this.value)" style="padding:4px 8px;border:1.5px solid #e5e3de;border-radius:7px;font-size:0.8125rem;font-family:inherit;outline:none;background:#fff;color:#374151;cursor:pointer;">${['viewer','manager','admin'].map(r=>`<option value="${r}" ${u.role===r?'selected':''}>${r}</option>`).join('')}</select>`}
           </td>
-          <td class="px-5 py-3.5 text-gray-400 text-xs">${UI.formatDate(u.created_at)}</td>
-          <td class="px-5 py-3.5 text-right">
-            ${!isSelf ? `
-              <div class="flex items-center justify-end gap-3">
-                <button onclick="resetUserPassword('${u.id}','${u.full_name||u.email}')"
-                  class="text-xs text-blue-400 hover:text-blue-600 transition-colors">Reset Password</button>
-                <button onclick="removeUser('${u.id}','${u.full_name||u.email}')"
-                  class="text-xs text-red-400 hover:text-red-600 transition-colors">Remove</button>
-              </div>` : ''}
+          <td class="tbl-cell" style="color:#9ca3af;font-size:0.8125rem;">${UI.formatDate(u.created_at)}</td>
+          <td class="tbl-cell" style="text-align:right;">
+            ${!isSelf ? `<div style="display:flex;align-items:center;justify-content:flex-end;gap:14px;">
+              <button onclick="resetUserPassword('${u.id}','${u.full_name||u.email}')" class="action-link" style="color:#4f46e5;" onmouseover="this.style.color='#4338ca'" onmouseout="this.style.color='#4f46e5'">Reset password</button>
+              <button onclick="removeUser('${u.id}','${u.full_name||u.email}')"          class="action-link" style="color:#ef4444;" onmouseover="this.style.color='#dc2626'" onmouseout="this.style.color='#ef4444'">Remove</button>
+            </div>` : ''}
           </td>
         </tr>`;
       }).join('');
     }
 
-    async function changeRole(userId,role) {
-      try { await DB.updateUserRole(userId,role); UI.toast('Role updated.','success'); await loadUsers(); }
-      catch(err){ UI.toast('Failed to update role.','error'); }
+    async function changeRole(userId, role) {
+      try { await DB.updateUserRole(userId, role); UI.toast('Role updated.','success'); await loadUsers(); }
+      catch(err) { UI.toast('Failed to update role.','error'); }
     }
 
     async function resetUserPassword(userId, name) {
       const existing = document.getElementById('reset-pw-modal');
       if (existing) existing.remove();
-
       const modal = document.createElement('div');
       modal.id = 'reset-pw-modal';
-      modal.className = 'fixed inset-0 z-50 flex items-center justify-center bg-black/50';
+      modal.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(15,23,42,0.45);backdrop-filter:blur(3px);';
       modal.innerHTML = `
-        <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm mx-4 p-6">
-          <h3 class="text-base font-semibold text-gray-900 mb-1">Reset Password</h3>
-          <p class="text-xs text-gray-400 mb-5">Setting new password for <strong>${name}</strong>.</p>
-          <div class="space-y-3">
-            <div>
-              <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">New Password</label>
-              <div class="flex gap-2">
-                <input id="rpw-input" type="text" placeholder="Enter new password"
-                  class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-slate-400"/>
-                <button id="rpw-default"
-                  class="px-3 py-2 text-xs font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors whitespace-nowrap">
-                  Use Default
-                </button>
-              </div>
+        <div style="background:#fff;border-radius:14px;padding:24px;width:100%;max-width:400px;margin:0 16px;box-shadow:0 24px 48px rgba(0,0,0,0.14);">
+          <h3 style="font-size:0.9375rem;font-weight:700;color:#111827;margin:0 0 4px;letter-spacing:-0.02em;">Reset Password</h3>
+          <p style="font-size:0.8125rem;color:#9ca3af;margin:0 0 18px;">Setting new password for <strong style="color:#374151;">${name}</strong>.</p>
+          <div>
+            <label style="display:block;font-size:0.6875rem;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:5px;">New Password</label>
+            <div style="display:flex;gap:8px;">
+              <input id="rpw-input" type="text" placeholder="Enter new password"
+                style="flex:1;padding:9px 12px;border:1.5px solid #e5e3de;border-radius:8px;font-size:0.875rem;outline:none;font-family:inherit;transition:border-color 0.15s,box-shadow 0.15s;" onfocus="this.style.borderColor='#4f46e5';this.style.boxShadow='0 0 0 3px rgba(79,70,229,0.08)'" onblur="this.style.borderColor='#e5e3de';this.style.boxShadow='none'"/>
+              <button id="rpw-default" style="padding:9px 13px;font-size:0.8125rem;font-weight:600;color:#374151;background:#f0efe9;border:none;border-radius:8px;cursor:pointer;font-family:inherit;white-space:nowrap;transition:background 0.15s;" onmouseover="this.style.background='#e5e3de'" onmouseout="this.style.background='#f0efe9'">Use Default</button>
             </div>
-            <p id="rpw-error" class="hidden text-xs text-red-600"></p>
+            <p id="rpw-error" style="display:none;font-size:0.75rem;color:#ef4444;margin-top:7px;"></p>
           </div>
-          <div class="flex gap-3 mt-5">
-            <button id="rpw-cancel" class="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">Cancel</button>
-            <button id="rpw-save"   class="flex-1 px-4 py-2 text-sm font-medium text-white bg-slate-700 rounded-lg hover:bg-slate-800 transition-colors">Save</button>
+          <div style="display:flex;gap:10px;margin-top:18px;">
+            <button id="rpw-cancel" style="flex:1;padding:9px 16px;font-size:0.875rem;font-weight:600;color:#374151;background:#f0efe9;border:none;border-radius:8px;cursor:pointer;font-family:inherit;">Cancel</button>
+            <button id="rpw-save"   style="flex:1;padding:9px 16px;font-size:0.875rem;font-weight:600;color:#fff;background:#4f46e5;border:none;border-radius:8px;cursor:pointer;font-family:inherit;">Save</button>
           </div>
         </div>
       `;
       document.body.appendChild(modal);
-
-      document.getElementById('rpw-default').addEventListener('click', () => {
-        document.getElementById('rpw-input').value = 'SBMNew123';
-      });
+      document.getElementById('rpw-default').addEventListener('click', () => { document.getElementById('rpw-input').value = 'SBMNew123'; });
       document.getElementById('rpw-cancel').addEventListener('click', () => modal.remove());
       modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
-
       document.getElementById('rpw-save').addEventListener('click', async () => {
         const password = document.getElementById('rpw-input').value.trim();
         const errEl    = document.getElementById('rpw-error');
-        errEl.classList.add('hidden');
-
-        if (!password) {
-          errEl.textContent = 'Password is required.'; errEl.classList.remove('hidden'); return;
-        }
-        if (password.length < 8) {
-          errEl.textContent = 'Password must be at least 8 characters.'; errEl.classList.remove('hidden'); return;
-        }
-
+        errEl.style.display = 'none';
+        if (!password) { errEl.textContent='Password is required.'; errEl.style.display='block'; return; }
+        if (password.length < 8) { errEl.textContent='Password must be at least 8 characters.'; errEl.style.display='block'; return; }
         const saveBtn = document.getElementById('rpw-save');
         saveBtn.textContent = 'Saving…'; saveBtn.disabled = true;
-
         try {
           const session = (await supabaseClient.auth.getSession()).data.session;
           const res = await fetch(`${SUPABASE_URL}/functions/v1/reset-user-password`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${session.access_token}`,
-              'apikey': SUPABASE_ANON_KEY,
-            },
+            method:'POST', headers:{'Content-Type':'application/json','Authorization':`Bearer ${session.access_token}`,'apikey':SUPABASE_ANON_KEY},
             body: JSON.stringify({ userId, password }),
           });
           const data = await res.json();
           if (!res.ok) throw new Error(data.error || 'Failed to reset password.');
-
-          modal.remove();
-          UI.toast(`Password reset for ${name}.`, 'success');
+          modal.remove(); UI.toast(`Password reset for ${name}.`, 'success');
         } catch(err) {
           errEl.textContent = err.message || 'Failed to reset password.';
-          errEl.classList.remove('hidden');
+          errEl.style.display = 'block';
           saveBtn.textContent = 'Save'; saveBtn.disabled = false;
         }
       });
     }
 
-    async function removeUser(userId,name) {
-      const confirmed=await UI.confirm({title:'Remove User',message:`Remove ${name} from BGTrack? They will lose access immediately.`,confirmLabel:'Remove',danger:true});
-      if(!confirmed) return;
+    async function removeUser(userId, name) {
+      const confirmed = await UI.confirm({ title:'Remove User', message:`Remove ${name} from BGTrack? They will lose access immediately.`, confirmLabel:'Remove', danger:true });
+      if (!confirmed) return;
       try { await DB.deleteUser(userId); UI.toast('User removed.','success'); await loadUsers(); }
-      catch(err){ UI.toast('Failed to remove user.','error'); }
+      catch(err) { UI.toast('Failed to remove user.','error'); }
     }
 
     function attachListeners() {
       document.getElementById('save-settings').addEventListener('click', async () => {
-        const days=parseInt(document.getElementById('reminder-days').value);
-        if(!days||days<1||days>365){UI.toast('Enter a value between 1 and 365.','warning');return;}
-        try { await DB.updateSettings(days,currentUser.id); document.getElementById('settings-note').textContent='Saved just now.'; UI.toast('Reminder window updated.','success'); }
-        catch(err){ UI.toast('Failed to save settings.','error'); }
+        const days = parseInt(document.getElementById('reminder-days').value);
+        if (!days || days < 1 || days > 365) { UI.toast('Enter a value between 1 and 365.','warning'); return; }
+        try {
+          await DB.updateSettings(days, currentUser.id);
+          document.getElementById('settings-note').textContent = 'Saved just now.';
+          UI.toast('Reminder window updated.','success');
+        } catch(err) { UI.toast('Failed to save settings.','error'); }
       });
 
       document.getElementById('invite-btn').addEventListener('click', async () => {
-  const name  = document.getElementById('invite-name').value.trim();
-  const email = document.getElementById('invite-email').value.trim();
-  const role  = document.getElementById('invite-role').value;
-  const errEl = document.getElementById('invite-error');
-  errEl.classList.add('hidden');
-
-  if (!email) {
-    errEl.textContent = 'Email is required.';
-    errEl.classList.remove('hidden');
-    return;
-  }
-
-  try {
-    const session = (await supabaseClient.auth.getSession()).data.session;
-    const res = await fetch(
-  `${SUPABASE_URL}/functions/v1/create-user`,
-  {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${session.access_token}`,
-      'apikey': SUPABASE_ANON_KEY,
-    },
-    body: JSON.stringify({ email, full_name: name, role }),
-  }
-);
-
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Failed to create user');
-
-    UI.toast(`Account created. Password setup email sent to ${email}.`, 'success');
-    document.getElementById('invite-name').value  = '';
-    document.getElementById('invite-email').value = '';
-  } catch(err) {
-    errEl.textContent = err.message || 'Failed to create user.';
-    errEl.classList.remove('hidden');
-  }
-});
-
+        const name  = document.getElementById('invite-name').value.trim();
+        const email = document.getElementById('invite-email').value.trim();
+        const role  = document.getElementById('invite-role').value;
+        const errEl = document.getElementById('invite-error');
+        errEl.classList.add('hidden');
+        if (!email) { errEl.textContent='Email is required.'; errEl.classList.remove('hidden'); return; }
+        try {
+          const session = (await supabaseClient.auth.getSession()).data.session;
+          const res = await fetch(`${SUPABASE_URL}/functions/v1/create-user`, {
+            method:'POST', headers:{'Content-Type':'application/json','Authorization':`Bearer ${session.access_token}`,'apikey':SUPABASE_ANON_KEY},
+            body: JSON.stringify({ email, full_name: name, role }),
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || 'Failed to create user');
+          UI.toast(`Account created. Password setup email sent to ${email}.`,'success');
+          document.getElementById('invite-name').value  = '';
+          document.getElementById('invite-email').value = '';
+        } catch(err) {
+          errEl.textContent = err.message || 'Failed to create user.';
+          errEl.classList.remove('hidden');
+        }
+      });
     }
     init();
   </script>
