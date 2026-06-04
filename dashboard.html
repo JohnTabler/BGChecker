@@ -3,31 +3,202 @@
 <head>
   <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>BGTrack — Dashboard</title>
+  <!-- Apply saved theme immediately to prevent flash -->
+  <script>
+    (function() {
+      const t = localStorage.getItem('bgtrack-theme');
+      if (t === 'light') document.documentElement.setAttribute('data-theme', 'light');
+    })();
+  </script>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
+    /* ── Theme tokens ─────────────────────────────────────────────
+       Dark default: "Monochrome" — deep black, neutral grays,
+       white text, no chromatic accents.
+       Light: clean white, neutral grays only.
+    ───────────────────────────────────────────────────────────── */
+    :root {
+      --body-bg:           #0d0d0d;
+      --body-glow:         radial-gradient(ellipse 80% 50% at 20% 0%, rgba(255,255,255,0.015) 0%, transparent 60%);
+      --header-bg:         rgba(10,10,10,0.90);
+      --header-border:     rgba(255,255,255,0.08);
+      --card-bg:           #161616;
+      --card-border:       rgba(255,255,255,0.08);
+      --card-inner-border: rgba(255,255,255,0.05);
+      --text-heading:      #f0f0f0;
+      --text-body:         #d1cfcf;
+      --text-secondary:    #afafaf;
+      --text-muted:        #888888;
+      --accent:            #d0d0d0;
+      --accent-hover:      #ffffff;
+      --row-border:        rgba(255,255,255,0.05);
+      --row-hover:         rgba(255,255,255,0.03);
+      --loader-bg:         #0d0d0d;
+      --stat-label:        #888888;
+      --stat-total-color:   #f0f0f0;
+      --stat-cleared-color: #c8c8c8;
+      --stat-pending-color: #f0f0f0;
+      --stat-expired-color: #fd8c8c;
+      --icon-total:   rgba(255,255,255,0.08);
+      --icon-cleared: rgba(255,255,255,0.06);
+      --icon-pending: rgba(255,255,255,0.04);
+      --icon-expired: rgba(255,255,255,0.03);
+    }
+
+    [data-theme="light"] {
+      --body-bg:           #f5f5f5;
+      --body-glow:         none;
+      --header-bg:         rgba(255,255,255,0.92);
+      --header-border:     #e0e0e0;
+      --card-bg:           #ffffff;
+      --card-border:       #e0e0e0;
+      --card-inner-border: #f0f0f0;
+      --text-heading:      #111111;
+      --text-body:         #333333;
+      --text-secondary:    #777777;
+      --text-muted:        #aaaaaa;
+      --accent:            #222222;
+      --accent-hover:      #000000;
+      --row-border:        #f0f0f0;
+      --row-hover:         rgba(0,0,0,0.02);
+      --loader-bg:         #f5f5f5;
+      --stat-label:        #888888;
+      --stat-total-color:   #111111;
+      --stat-cleared-color: #333333;
+      --stat-pending-color: #777777;
+      --stat-expired-color: #aaaaaa;
+      --icon-total:   #efefef;
+      --icon-cleared: #e8e8e8;
+      --icon-pending: #e0e0e0;
+      --icon-expired: #d8d8d8;
+    }
+
+    /* ── Base ─────────────────────────────────────────────────── */
     *, *::before, *::after { box-sizing: border-box; }
-    body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f0efe9; }
-    .page-header { background: #fff; border-bottom: 1px solid #e5e3de; padding: 0 24px; height: 52px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 20; }
-    .page-title  { font-size: 0.9375rem; font-weight: 700; color: #111827; letter-spacing: -0.02em; }
-    .card        { background: #fff; border: 1px solid #e5e3de; border-radius: 12px; }
-    .card-header { padding: 14px 18px; border-bottom: 1px solid #f0ede8; display: flex; align-items: center; justify-content: space-between; }
-    .card-title  { font-size: 0.875rem; font-weight: 700; color: #111827; letter-spacing: -0.015em; }
-    .card-sub    { font-size: 0.75rem; color: #9ca3af; margin-top: 2px; }
-    .view-link   { font-size: 0.75rem; font-weight: 600; color: #4f46e5; text-decoration: none; letter-spacing: -0.01em; }
-    .view-link:hover { color: #4338ca; }
-    .list-row    { display: flex; align-items: center; justify-content: space-between; padding: 11px 18px; border-bottom: 1px solid #f5f4f1; transition: background 0.1s; text-decoration: none; }
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: var(--body-bg);
+      background-image: var(--body-glow);
+      transition: background 0.3s, color 0.3s;
+    }
+
+    /* ── Sidebar dark override ────────────────────────────────── */
+    :not([data-theme="light"]) #sidebar {
+      background: linear-gradient(180deg, #111111 0%, #0a0a0a 100%) !important;
+    }
+
+    /* ── Nav item dark overrides (beats ui.js injected styles) ── */
+    :not([data-theme="light"]) .nav-item {
+      color: #b8b8b8 !important;
+    }
+    :not([data-theme="light"]) .nav-item:hover {
+      background: rgba(255,255,255,0.05) !important;
+      color: #aaaaaa !important;
+    }
+    :not([data-theme="light"]) .nav-item.is-active {
+      background: rgba(255,255,255,0.10) !important;
+      color: #e0e0e0 !important;
+      border-left-color: #e0e0e0 !important;
+    }
+
+    /* ── Sidebar section labels & profile area dark overrides ─── */
+    :not([data-theme="light"]) #sidebar p[style*="text-transform:uppercase"] {
+      color: #333333 !important;
+    }
+    :not([data-theme="light"]) .profile-btn:hover {
+      background: rgba(255,255,255,0.05) !important;
+    }
+    :not([data-theme="light"]) #profile-menu-dropdown {
+      background: #1a1a1a !important;
+      border-color: rgba(255,255,255,0.10) !important;
+    }
+    :not([data-theme="light"]) .dropdown-item {
+      color: #aaaaaa !important;
+    }
+    :not([data-theme="light"]) .dropdown-item:hover {
+      background: rgba(255,255,255,0.06) !important;
+    }
+    :not([data-theme="light"]) .dropdown-item.danger {
+      color: #f0f0f0 !important;
+    }
+    :not([data-theme="light"]) .dropdown-item.danger:hover {
+      background: rgba(255,255,255,0.08) !important;
+    }
+    :not([data-theme="light"]) #profile-menu-dropdown [style*="border-top"] {
+      border-top-color: rgba(255,255,255,0.08) !important;
+    }
+
+    /* ── Spinner dark ─────────────────────────────────────────── */
+    :not([data-theme="light"]) #page-loader svg {
+      color: #888888 !important;
+    }
+
+    /* ── Layout ───────────────────────────────────────────────── */
+    .page-header {
+      background: var(--header-bg);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--header-border);
+      padding: 0 24px; height: 52px;
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 20;
+      transition: background 0.3s, border-color 0.3s;
+    }
+    .page-title { font-size: 0.9375rem; font-weight: 700; color: var(--text-heading); letter-spacing: -0.02em; }
+
+    /* ── Cards ────────────────────────────────────────────────── */
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      transition: background 0.3s, border-color 0.3s;
+    }
+    .card-header {
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--card-inner-border);
+      display: flex; align-items: center; justify-content: space-between;
+      transition: border-color 0.3s;
+    }
+    .card-title { font-size: 0.875rem; font-weight: 700; color: var(--text-heading); letter-spacing: -0.015em; }
+    .card-sub   { font-size: 0.75rem; color: var(--text-secondary); margin-top: 2px; }
+    .view-link  { font-size: 0.75rem; font-weight: 600; color: var(--accent); text-decoration: none; letter-spacing: -0.01em; transition: color 0.15s; }
+    .view-link:hover { color: var(--accent-hover); }
+
+    /* ── List rows ────────────────────────────────────────────── */
+    .list-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 11px 18px;
+      border-bottom: 1px solid var(--row-border);
+      transition: background 0.12s;
+      text-decoration: none;
+    }
     .list-row:last-child { border-bottom: none; }
-    .list-row:hover { background: #f9f8f5; }
-    .row-name    { font-size: 0.875rem; font-weight: 600; color: #111827; letter-spacing: -0.01em; }
-    .row-sub     { font-size: 0.75rem; color: #9ca3af; margin-top: 1px; }
-    .stat-icon   { width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .list-row:hover { background: var(--row-hover); }
+    .row-name { font-size: 0.875rem; font-weight: 600; color: var(--text-heading); letter-spacing: -0.01em; }
+    .row-sub  { font-size: 0.75rem; color: var(--text-secondary); margin-top: 1px; }
+
+    /* ── Stat cards ───────────────────────────────────────────── */
+    .stat-icon  { width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background 0.3s; }
+    .stat-label { font-size: 0.6875rem; font-weight: 700; color: var(--stat-label); text-transform: uppercase; letter-spacing: 0.07em; transition: color 0.3s; }
+    .stat-num   { font-size: 2rem; font-weight: 800; letter-spacing: -0.04em; line-height: 1; font-variant-numeric: tabular-nums; transition: color 0.3s; }
+    #stat-total   { color: var(--stat-total-color); }
+    #stat-cleared { color: var(--stat-cleared-color); }
+    #stat-pending { color: var(--stat-pending-color); }
+    #stat-expired { color: var(--stat-expired-color); }
+    .icon-total   { background: var(--icon-total); }
+    .icon-cleared { background: var(--icon-cleared); }
+    .icon-pending { background: var(--icon-pending); }
+    .icon-expired { background: var(--icon-expired); }
+
+    /* ── Empty / loading states ───────────────────────────────── */
+    .empty-state { padding: 32px 18px; text-align: center; font-size: 0.875rem; color: var(--text-secondary); }
   </style>
 </head>
 <body>
 
-  <aside id="sidebar" class="w-56 flex-shrink-0 flex flex-col min-h-screen fixed top-0 left-0 z-30" style="background:#0e1a33;"></aside>
+  <aside id="sidebar" class="w-56 flex-shrink-0 flex flex-col min-h-screen fixed top-0 left-0 z-30" style="background:linear-gradient(180deg,#111111 0%,#0a0a0a 100%);"></aside>
 
   <div class="ml-56 flex flex-col min-h-screen">
     <header class="page-header">
@@ -35,8 +206,8 @@
       <div id="profile-area"></div>
     </header>
 
-    <div id="page-loader" class="fixed inset-0 z-50 bg-white flex items-center justify-center">
-      <svg class="w-8 h-8" style="animation:spin 0.9s linear infinite;color:#4f46e5;" fill="none" viewBox="0 0 24 24">
+    <div id="page-loader" class="fixed inset-0 z-50 flex items-center justify-center" style="background:var(--loader-bg);">
+      <svg class="w-8 h-8" style="animation:spin 0.9s linear infinite;color:#888888;" fill="none" viewBox="0 0 24 24">
         <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
         <circle style="opacity:.2" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
         <path style="opacity:.8" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
@@ -50,42 +221,42 @@
 
         <div class="card" style="padding:18px;">
           <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px;">
-            <p style="font-size:0.6875rem;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:0.07em;">Total Records</p>
-            <div class="stat-icon" style="background:#f0efe9;">
-              <svg style="width:18px;height:18px;color:#6b7280;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20H5a2 2 0 01-2-2V6a2 2 0 012-2h7l5 5v9a2 2 0 01-2 2z"/><path stroke-linecap="round" stroke-linejoin="round" d="M17 8h-5V3"/></svg>
+            <p class="stat-label">Total Records</p>
+            <div class="stat-icon icon-total">
+              <svg style="width:18px;height:18px;color:var(--stat-label);" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20H5a2 2 0 01-2-2V6a2 2 0 012-2h7l5 5v9a2 2 0 01-2 2z"/><path stroke-linecap="round" stroke-linejoin="round" d="M17 8h-5V3"/></svg>
             </div>
           </div>
-          <p id="stat-total" style="font-size:2rem;font-weight:800;color:#111827;letter-spacing:-0.04em;line-height:1;">—</p>
+          <p id="stat-total" class="stat-num">—</p>
         </div>
 
         <div class="card" style="padding:18px;">
           <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px;">
-            <p style="font-size:0.6875rem;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:0.07em;">Cleared</p>
-            <div class="stat-icon" style="background:#ecfdf5;">
-              <svg style="width:18px;height:18px;color:#10b981;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <p class="stat-label">Cleared</p>
+            <div class="stat-icon icon-cleared">
+              <svg style="width:18px;height:18px;color:var(--stat-cleared-color);" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             </div>
           </div>
-          <p id="stat-cleared" style="font-size:2rem;font-weight:800;color:#059669;letter-spacing:-0.04em;line-height:1;">—</p>
+          <p id="stat-cleared" class="stat-num">—</p>
         </div>
 
         <div class="card" style="padding:18px;">
           <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px;">
-            <p style="font-size:0.6875rem;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:0.07em;">Pending</p>
-            <div class="stat-icon" style="background:#fffbeb;">
-              <svg style="width:18px;height:18px;color:#f59e0b;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" d="M12 6v6l4 2"/></svg>
+            <p class="stat-label">Pending</p>
+            <div class="stat-icon icon-pending">
+              <svg style="width:18px;height:18px;color:var(--stat-pending-color);" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" d="M12 6v6l4 2"/></svg>
             </div>
           </div>
-          <p id="stat-pending" style="font-size:2rem;font-weight:800;color:#d97706;letter-spacing:-0.04em;line-height:1;">—</p>
+          <p id="stat-pending" class="stat-num">—</p>
         </div>
 
         <div class="card" style="padding:18px;">
           <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px;">
-            <p style="font-size:0.6875rem;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:0.07em;">Expired</p>
-            <div class="stat-icon" style="background:#fef2f2;">
-              <svg style="width:18px;height:18px;color:#ef4444;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+            <p class="stat-label">Expired</p>
+            <div class="stat-icon icon-expired">
+              <svg style="width:18px;height:18px;color:var(--stat-expired-color);" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
             </div>
           </div>
-          <p id="stat-expired" style="font-size:2rem;font-weight:800;color:#dc2626;letter-spacing:-0.04em;line-height:1;">—</p>
+          <p id="stat-expired" class="stat-num">—</p>
         </div>
 
       </div>
@@ -102,7 +273,7 @@
             </div>
             <a href="reminders.html" class="view-link">View all →</a>
           </div>
-          <div id="expiring-list"><div style="padding:32px 18px;text-align:center;font-size:0.875rem;color:#9ca3af;">Loading…</div></div>
+          <div id="expiring-list"><div class="empty-state">Loading…</div></div>
         </div>
 
         <!-- Recently added -->
@@ -114,7 +285,7 @@
             </div>
             <a href="records.html" class="view-link">View all →</a>
           </div>
-          <div id="recent-list"><div style="padding:32px 18px;text-align:center;font-size:0.875rem;color:#9ca3af;">Loading…</div></div>
+          <div id="recent-list"><div class="empty-state">Loading…</div></div>
         </div>
 
       </div>
@@ -128,10 +299,12 @@
   <script>
     let currentUser = null;
 
+    // ── Dashboard data ────────────────────────────────────────
     async function init() {
       currentUser = await Auth.guard('viewer');
       if (!currentUser) return;
       UI.renderNav(currentUser);
+      UI.injectThemeToggle();
       Auth.startSessionTimeout();
       await loadDashboard();
       UI.hideLoader();
@@ -154,7 +327,7 @@
           document.getElementById('expiring-subtitle').textContent = `Within ${expiring.days} days — ${expiring.records.length} record${expiring.records.length !== 1 ? 's' : ''}`;
           const el = document.getElementById('expiring-list');
           el.innerHTML = !expiring.records.length
-            ? `<div style="padding:32px 18px;text-align:center;font-size:0.875rem;color:#9ca3af;">No records expiring soon.</div>`
+            ? `<div class="empty-state">No records expiring soon.</div>`
             : expiring.records.slice(0,5).map(r => `
               <a href="record-detail.html?id=${r.id}" class="list-row">
                 <div><p class="row-name">${r.employee_name}</p><p class="row-sub">${r.project}</p></div>
@@ -165,7 +338,7 @@
         const recent = [...all].sort((a,b) => new Date(b.created_at)-new Date(a.created_at)).slice(0,5);
         const rel = document.getElementById('recent-list');
         rel.innerHTML = !recent.length
-          ? `<div style="padding:32px 18px;text-align:center;font-size:0.875rem;color:#9ca3af;">No records yet.</div>`
+          ? `<div class="empty-state">No records yet.</div>`
           : recent.map(r => `
             <a href="record-detail.html?id=${r.id}" class="list-row">
               <div><p class="row-name">${r.employee_name}</p><p class="row-sub">${r.project} · ${UI.formatDate(r.date_ordered)}</p></div>
@@ -173,6 +346,7 @@
             </a>`).join('');
       } catch(err) { UI.toast('Failed to load dashboard.', 'error'); console.error(err); }
     }
+
     init();
   </script>
 </body>

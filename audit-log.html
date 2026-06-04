@@ -3,49 +3,66 @@
 <head>
   <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>BGTrack — Audit Log</title>
+  <script>
+    (function() { const t = localStorage.getItem('bgtrack-theme'); if (t === 'light') document.documentElement.setAttribute('data-theme', 'light'); })();
+  </script>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
-    *, *::before, *::after { box-sizing: border-box; }
-    body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f0efe9; }
-    .page-header  { background: #fff; border-bottom: 1px solid #e5e3de; padding: 0 24px; height: 52px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 20; }
-    .breadcrumb   { font-size: 0.875rem; display: flex; align-items: center; gap: 7px; }
-    .bc-link      { color: #9ca3af; text-decoration: none; font-weight: 500; transition: color 0.12s; display:inline-flex;align-items:center;gap:4px; }
-    .bc-link:hover{ color: #4f46e5; }
-    .bc-sep       { color: #d1cec9; }
-    .page-title   { font-size: 0.9375rem; font-weight: 700; color: #111827; letter-spacing: -0.02em; }
-    .card         { background: #fff; border: 1px solid #e5e3de; border-radius: 12px; overflow: hidden; }
-    .card-header  { padding: 14px 20px; border-bottom: 1px solid #f0ede8; background: #faf9f7; display:flex;align-items:center;justify-content:space-between; }
-    .field-label  { display: block; font-size: 0.6875rem; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 5px; }
-    .field-input  {
-      padding: 8px 11px;
-      border: 1.5px solid #e5e3de;
-      border-radius: 7px;
-      font-size: 0.8125rem;
-      font-family: inherit;
-      outline: none;
-      transition: border-color 0.15s, box-shadow 0.15s;
-      background: #fff;
-      color: #374151;
+    :root {
+      --body-bg:#0d0d0d; --body-glow:radial-gradient(ellipse 80% 50% at 20% 0%,rgba(255,255,255,0.015) 0%,transparent 60%);
+      --header-bg:rgba(10,10,10,0.90); --header-border:rgba(255,255,255,0.08);
+      --card-bg:#161616; --card-border:rgba(255,255,255,0.08); --card-inner-border:rgba(255,255,255,0.05);
+      --text-heading:#f0f0f0; --text-body:#b0b0b0; --text-secondary:#707070; --text-muted:#3d3d3d;
+      --accent:#d0d0d0; --accent-hover:#ffffff;
+      --row-border:rgba(255,255,255,0.05); --row-hover:rgba(255,255,255,0.03); --loader-bg:#0d0d0d;
+      --input-bg:#111111; --input-border:rgba(255,255,255,0.1); --input-focus:#888888;
     }
-    .field-input:focus { border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79,70,229,0.08); }
-    .btn-primary  { display:inline-flex;align-items:center;gap:5px;padding:8px 14px;background:#4f46e5;color:#fff;font-size:0.8125rem;font-weight:600;border:none;border-radius:7px;cursor:pointer;font-family:inherit;transition:background 0.15s; }
-    .btn-primary:hover { background:#4338ca; }
-    .btn-secondary{ display:inline-flex;align-items:center;gap:5px;padding:8px 14px;background:#f0efe9;color:#374151;font-size:0.8125rem;font-weight:600;border:none;border-radius:7px;cursor:pointer;font-family:inherit;transition:background 0.15s; }
-    .btn-secondary:hover { background:#e5e3de; }
-    .btn-ghost    { padding:6px 12px;font-size:0.8125rem;font-weight:600;color:#6b7280;background:#fff;border:1.5px solid #e5e3de;border-radius:7px;cursor:pointer;font-family:inherit;transition:all 0.15s; }
-    .btn-ghost:hover { background:#f9f8f5;color:#374151; }
+    [data-theme="light"] {
+      --body-bg:#f5f5f5; --body-glow:none;
+      --header-bg:rgba(255,255,255,0.92); --header-border:#e0e0e0;
+      --card-bg:#ffffff; --card-border:#e0e0e0; --card-inner-border:#f0f0f0;
+      --text-heading:#111111; --text-body:#333333; --text-secondary:#777777; --text-muted:#aaaaaa;
+      --accent:#222222; --accent-hover:#000000;
+      --row-border:#f0f0f0; --row-hover:rgba(0,0,0,0.02); --loader-bg:#f5f5f5;
+      --input-bg:#ffffff; --input-border:#e0e0e0; --input-focus:#666666;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body { font-family: 'Outfit', sans-serif; background: var(--body-bg); background-image: var(--body-glow); transition: background 0.3s; }
+    .page-header  { background: var(--header-bg); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border-bottom: 1px solid var(--header-border); padding: 0 24px; height: 52px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 20; transition: background 0.3s, border-color 0.3s; }
+    .breadcrumb   { font-size: 0.875rem; display: flex; align-items: center; gap: 7px; }
+    .bc-link      { color: var(--text-secondary); text-decoration: none; font-weight: 500; transition: color 0.12s; display:inline-flex;align-items:center;gap:4px; }
+    .bc-link:hover{ color: var(--text-heading); }
+    .bc-sep       { color: var(--text-muted); }
+    .page-title   { font-size: 0.9375rem; font-weight: 700; color: var(--text-heading); letter-spacing: -0.02em; }
+    .card         { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; overflow: hidden; transition: background 0.3s, border-color 0.3s; }
+    .card-header  { padding: 14px 20px; border-bottom: 1px solid var(--card-inner-border); background: var(--row-hover); display:flex;align-items:center;justify-content:space-between; }
+    .field-label  { display: block; font-size: 0.6875rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 5px; }
+    .field-input  {
+      padding: 8px 11px; border: 1.5px solid var(--input-border); border-radius: 7px;
+      font-size: 0.8125rem; font-family: inherit; outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      background: var(--input-bg); color: var(--text-heading);
+    }
+    .field-input:focus { border-color: var(--input-focus); box-shadow: 0 0 0 3px rgba(128,128,128,0.12); }
+    .field-input option { background: var(--card-bg); color: var(--text-heading); }
+    .btn-primary  { display:inline-flex;align-items:center;gap:5px;padding:8px 14px;background:var(--text-heading);color:var(--body-bg);font-size:0.8125rem;font-weight:600;border:none;border-radius:7px;cursor:pointer;font-family:inherit;transition:background 0.15s,color 0.15s; }
+    .btn-primary:hover { background:var(--accent-hover);color:var(--body-bg); }
+    .btn-secondary{ display:inline-flex;align-items:center;gap:5px;padding:8px 14px;background:var(--card-border);color:var(--text-body);font-size:0.8125rem;font-weight:600;border:none;border-radius:7px;cursor:pointer;font-family:inherit;transition:background 0.15s; }
+    .btn-secondary:hover { background:var(--card-inner-border); }
+    .btn-ghost    { padding:6px 12px;font-size:0.8125rem;font-weight:600;color:var(--text-secondary);background:var(--row-hover);border:1.5px solid var(--card-border);border-radius:7px;cursor:pointer;font-family:inherit;transition:all 0.15s; }
+    .btn-ghost:hover { background:var(--card-border);color:var(--text-body); }
     .btn-ghost:disabled { opacity:0.4;cursor:not-allowed; }
-    .tbl-head { font-size: 0.6875rem; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.07em; padding: 11px 16px; text-align: left; }
-    .tbl-row  { border-bottom: 1px solid #f5f4f1; transition: background 0.1s; }
+    .tbl-head { font-size: 0.6875rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.07em; padding: 11px 16px; text-align: left; }
+    .tbl-row  { border-bottom: 1px solid var(--row-border); transition: background 0.1s; }
     .tbl-row:last-child { border-bottom: none; }
-    .tbl-row:hover { background: #f9f8f5; }
-    .tbl-cell { padding: 11px 16px; font-size: 0.8125rem; color: #374151; }
+    .tbl-row:hover { background: var(--row-hover); }
+    .tbl-cell { padding: 11px 16px; font-size: 0.8125rem; color: var(--text-body); }
   </style>
 </head>
 <body>
-  <aside id="sidebar" class="w-56 flex-shrink-0 flex flex-col min-h-screen fixed top-0 left-0 z-30" style="background:#0e1a33;"></aside>
+  <aside id="sidebar" class="w-56 flex-shrink-0 flex flex-col min-h-screen fixed top-0 left-0 z-30" style="background:linear-gradient(180deg,#111111 0%,#0a0a0a 100%);"></aside>
   <div class="ml-56 flex-1 flex flex-col min-h-screen">
 
     <header class="page-header">
@@ -60,8 +77,8 @@
       <div id="profile-area"></div>
     </header>
 
-    <div id="page-loader" class="fixed inset-0 z-50 bg-white flex items-center justify-center">
-      <svg class="w-8 h-8" style="animation:spin 0.9s linear infinite;color:#4f46e5;" fill="none" viewBox="0 0 24 24">
+    <div id="page-loader" class="fixed inset-0 z-50 flex items-center justify-center" style="background:var(--loader-bg);">
+      <svg class="w-8 h-8" style="animation:spin 0.9s linear infinite;color:#888888;" fill="none" viewBox="0 0 24 24">
         <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
         <circle style="opacity:.2" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
         <path style="opacity:.8" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
@@ -117,7 +134,7 @@
         <div class="overflow-x-auto">
           <table style="width:100%;border-collapse:collapse;">
             <thead>
-              <tr style="border-bottom:1px solid #f0ede8;background:#faf9f7;">
+              <tr style="border-bottom:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.03);">
                 <th class="tbl-head">When</th>
                 <th class="tbl-head">User</th>
                 <th class="tbl-head">Action</th>
@@ -132,9 +149,9 @@
             </tbody>
           </table>
         </div>
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-top:1px solid #f0ede8;background:#faf9f7;">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-top:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.02);">
           <button id="btn-prev" class="btn-ghost" disabled>← Prev</button>
-          <span id="page-indicator" style="font-size:0.8125rem;color:#9ca3af;font-weight:500;"></span>
+          <span id="page-indicator" style="font-size:0.8125rem;color:#475569;font-weight:500;"></span>
           <button id="btn-next" class="btn-ghost" disabled>Next →</button>
         </div>
       </div>
@@ -143,26 +160,26 @@
   </div>
 
   <!-- CSV Export Modal -->
-  <div id="csv-modal" class="hidden" style="position:fixed;inset:0;z-index:9999;display:none;align-items:center;justify-content:center;background:rgba(15,23,42,0.45);backdrop-filter:blur(3px);">
-    <div style="background:#fff;border-radius:14px;padding:24px;width:100%;max-width:400px;margin:0 16px;box-shadow:0 24px 48px rgba(0,0,0,0.14);">
-      <h3 style="font-size:0.9375rem;font-weight:700;color:#111827;margin:0 0 4px;letter-spacing:-0.02em;">Download CSV</h3>
-      <p style="font-size:0.8125rem;color:#9ca3af;margin:0 0 16px;">Choose what to include in the export.</p>
+  <div id="csv-modal" class="hidden" style="position:fixed;inset:0;z-index:9999;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.5);backdrop-filter:blur(3px);">
+    <div style="background:#1a1a1a;border-radius:14px;padding:24px;width:100%;max-width:400px;margin:0 16px;box-shadow:0 24px 48px rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.1);">
+      <h3 style="font-size:0.9375rem;font-weight:700;color:#f0f0f0;margin:0 0 4px;letter-spacing:-0.02em;">Download CSV</h3>
+      <p style="font-size:0.8125rem;color:#888888;margin:0 0 16px;">Choose what to include in the export.</p>
       <div style="display:flex;flex-direction:column;gap:8px;">
-        <button id="csv-filtered" style="display:flex;align-items:flex-start;gap:12px;padding:12px 14px;border:1.5px solid #e5e3de;border-radius:10px;background:#fff;cursor:pointer;text-align:left;font-family:inherit;transition:all 0.15s;" onmouseover="this.style.borderColor='#4f46e5';this.style.background='#f8f7ff'" onmouseout="this.style.borderColor='#e5e3de';this.style.background='#fff'">
-          <div style="width:34px;height:34px;background:#f0efe9;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;">
-            <svg style="width:16px;height:16px;color:#6b7280;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z"/></svg>
+        <button id="csv-filtered" style="display:flex;align-items:flex-start;gap:12px;padding:12px 14px;border:1.5px solid rgba(255,255,255,0.1);border-radius:10px;background:#111111;cursor:pointer;text-align:left;font-family:inherit;transition:all 0.15s;" onmouseover="this.style.borderColor='#888888';this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.1)';this.style.background='#111111'">
+          <div style="width:34px;height:34px;background:rgba(255,255,255,0.07);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;">
+            <svg style="width:16px;height:16px;color:#aaaaaa;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z"/></svg>
           </div>
-          <div><div style="font-size:0.875rem;font-weight:600;color:#111827;">Filtered Results</div><div style="font-size:0.75rem;color:#9ca3af;margin-top:2px;">Export only rows matching current filters.</div></div>
+          <div><div style="font-size:0.875rem;font-weight:600;color:#f0f0f0;">Filtered Results</div><div style="font-size:0.75rem;color:#888888;margin-top:2px;">Export only rows matching current filters.</div></div>
         </button>
-        <button id="csv-all" style="display:flex;align-items:flex-start;gap:12px;padding:12px 14px;border:1.5px solid #e5e3de;border-radius:10px;background:#fff;cursor:pointer;text-align:left;font-family:inherit;transition:all 0.15s;" onmouseover="this.style.borderColor='#4f46e5';this.style.background='#f8f7ff'" onmouseout="this.style.borderColor='#e5e3de';this.style.background='#fff'">
-          <div style="width:34px;height:34px;background:#f0efe9;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;">
-            <svg style="width:16px;height:16px;color:#6b7280;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+        <button id="csv-all" style="display:flex;align-items:flex-start;gap:12px;padding:12px 14px;border:1.5px solid rgba(255,255,255,0.1);border-radius:10px;background:#111111;cursor:pointer;text-align:left;font-family:inherit;transition:all 0.15s;" onmouseover="this.style.borderColor='#888888';this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.1)';this.style.background='#111111'">
+          <div style="width:34px;height:34px;background:rgba(255,255,255,0.05);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;">
+            <svg style="width:16px;height:16px;color:#888888;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
           </div>
-          <div><div style="font-size:0.875rem;font-weight:600;color:#111827;">All Logs</div><div style="font-size:0.75rem;color:#9ca3af;margin-top:2px;">Export every audit log entry, ignoring filters.</div></div>
+          <div><div style="font-size:0.875rem;font-weight:600;color:#f0f0f0;">All Logs</div><div style="font-size:0.75rem;color:#888888;margin-top:2px;">Export every audit log entry, ignoring filters.</div></div>
         </button>
       </div>
       <div style="margin-top:16px;">
-        <button id="csv-cancel" style="width:100%;padding:9px 16px;font-size:0.875rem;font-weight:600;color:#374151;background:#f0efe9;border:none;border-radius:8px;cursor:pointer;font-family:inherit;transition:background 0.15s;" onmouseover="this.style.background='#e5e3de'" onmouseout="this.style.background='#f0efe9'">Cancel</button>
+        <button id="csv-cancel" style="width:100%;padding:9px 16px;font-size:0.875rem;font-weight:600;color:#aaaaaa;background:#111111;border:none;border-radius:8px;cursor:pointer;font-family:inherit;transition:background 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background='#111111'">Cancel</button>
       </div>
     </div>
   </div>
@@ -174,9 +191,9 @@
   <script>
     const PAGE_SIZE = 50;
     const ACTION_CFG = {
-      INSERT: { bg:'#ecfdf5', text:'#065f46', dot:'#10b981' },
-      UPDATE: { bg:'#eff6ff', text:'#1e40af', dot:'#3b82f6' },
-      DELETE: { bg:'#fef2f2', text:'#991b1b', dot:'#ef4444' },
+      INSERT: { bg:'rgba(255,255,255,0.08)', text:'#dddddd', dot:'#cccccc' },
+      UPDATE: { bg:'rgba(255,255,255,0.05)', text:'#aaaaaa', dot:'#999999' },
+      DELETE: { bg:'rgba(255,255,255,0.03)', text:'#777777', dot:'#666666' },
     };
 
     let currentPage = 1, totalCount = 0, activeFilters = {}, allUsers = [];
@@ -185,6 +202,7 @@
       const user = await Auth.guard('admin');
       if (!user) return;
       UI.renderNav(user);
+      UI.injectThemeToggle();
       Auth.startSessionTimeout();
       await loadUserDropdown();
       await loadPage();
@@ -216,7 +234,7 @@
       } catch(err) {
         console.error('Audit log failed:', err);
         document.getElementById('audit-tbody').innerHTML =
-          `<tr><td colspan="7" style="text-align:center;padding:48px;font-size:0.875rem;color:#ef4444;">Failed to load audit log.</td></tr>`;
+          `<tr><td colspan="7" style="text-align:center;padding:48px;font-size:0.875rem;color:var(--text-secondary);">Failed to load audit log.</td></tr>`;
       }
     }
 
@@ -239,8 +257,8 @@
         const c         = ACTION_CFG[l.action] || { bg:'#f9fafb', text:'#4b5563', dot:'#9ca3af' };
         const when      = new Date(l.created_at).toLocaleString('en-US', { month:'short', day:'numeric', year:'numeric', hour:'numeric', minute:'2-digit' });
         return `<tr class="tbl-row">
-          <td class="tbl-cell" style="color:#6b7280;white-space:nowrap;">${when}</td>
-          <td class="tbl-cell">${name}</td>
+          <td class="tbl-cell" style="color:var(--text-secondary);white-space:nowrap;">${when}</td>
+          <td class="tbl-cell" style="color:var(--text-body);">${name}</td>
           <td class="tbl-cell"><span style="display:inline-flex;align-items:center;gap:5px;padding:3px 9px 3px 7px;border-radius:999px;font-size:0.6875rem;font-weight:600;background:${c.bg};color:${c.text};"><span style="width:5px;height:5px;border-radius:50%;background:${c.dot};flex-shrink:0;"></span>${l.action}</span></td>
           <td class="tbl-cell" style="color:#9ca3af;">${l.table_name || '—'}</td>
           <td class="tbl-cell">${employee}</td>

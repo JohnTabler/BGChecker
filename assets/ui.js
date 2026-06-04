@@ -14,20 +14,34 @@ const UI = (() => {
         display:flex;align-items:center;gap:9px;
         padding:7px 10px;border-radius:7px;
         font-size:0.8125rem;font-weight:500;
-        color:#7a9cbf;text-decoration:none;
+        color:#555555;text-decoration:none;
         transition:background 0.12s,color 0.12s;
         letter-spacing:-0.01em;
       }
-      .nav-item:hover { background:rgba(255,255,255,0.07); color:#c8dcf0; }
-      .nav-item.is-active { background:#4f46e5; color:#fff; font-weight:600; }
+      [data-theme="light"] .nav-item { color:#777777; }
+      .nav-item:hover { background:rgba(255,255,255,0.05); color:#aaaaaa; }
+      [data-theme="light"] .nav-item:hover { background:rgba(0,0,0,0.04); color:#333333; }
+      .nav-item.is-active { background:rgba(255,255,255,0.10); color:#e0e0e0; font-weight:600; border-left:2px solid #e0e0e0; padding-left:8px; }
+      [data-theme="light"] .nav-item.is-active { background:rgba(0,0,0,0.07); color:#111111; border-left-color:#111111; }
       .profile-name { display:none; }
       @media(min-width:640px){ .profile-name { display:block; } }
       .profile-btn { display:flex;align-items:center;gap:8px;padding:5px 8px 5px 5px;border-radius:9px;border:none;background:transparent;cursor:pointer;transition:background 0.12s; }
-      .profile-btn:hover { background:#f0efe9; }
-      .dropdown-item { width:100%;text-align:left;padding:9px 13px;font-size:0.8125rem;background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:8px;transition:background 0.1s; }
-      .dropdown-item:hover { background:#f7f6f3; }
-      .dropdown-item.danger { color:#ef4444; }
-      .dropdown-item.danger:hover { background:#fff5f5; }
+      .profile-btn:hover { background:rgba(255,255,255,0.05); }
+      [data-theme="light"] .profile-btn:hover { background:rgba(0,0,0,0.04); }
+      .dropdown-item { width:100%;text-align:left;padding:9px 13px;font-size:0.8125rem;background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:8px;transition:background 0.1s;color:#aaaaaa; }
+      [data-theme="light"] .dropdown-item { color:#333333; }
+      .dropdown-item:hover { background:rgba(255,255,255,0.06); }
+      [data-theme="light"] .dropdown-item:hover { background:rgba(0,0,0,0.04); }
+      .dropdown-item.danger { color:#f0f0f0; }
+      [data-theme="light"] .dropdown-item.danger { color:#111111; }
+      .dropdown-item.danger:hover { background:rgba(255,255,255,0.08); }
+      [data-theme="light"] .dropdown-item.danger:hover { background:rgba(0,0,0,0.06); }
+      .theme-toggle-wrap { padding:10px; border-top:1px solid rgba(255,255,255,0.06); flex-shrink:0; transition:border-color 0.3s; }
+      [data-theme="light"] .theme-toggle-wrap { border-top-color:rgba(0,0,0,0.08); }
+      .theme-toggle-btn { width:100%;display:flex;align-items:center;gap:9px;padding:7px 10px;border-radius:7px;font-size:0.8125rem;font-weight:500;color:#555555;background:none;border:none;cursor:pointer;font-family:inherit;transition:background 0.12s,color 0.12s;letter-spacing:-0.01em;text-align:left; }
+      [data-theme="light"] .theme-toggle-btn { color:#888888; }
+      .theme-toggle-btn:hover { background:rgba(255,255,255,0.05); color:#aaaaaa; }
+      [data-theme="light"] .theme-toggle-btn:hover { background:rgba(0,0,0,0.04); color:#333333; }
     `;
     document.head.appendChild(s);
   })();
@@ -40,7 +54,7 @@ const UI = (() => {
     admin:     `<svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.7" style="flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>`,
     key:       `<svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.7" style="flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>`,
     signout:   `<svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.7" style="flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>`,
-    chevron:   `<svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5" style="flex-shrink:0;color:#9ca3af"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>`,
+    chevron:   `<svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5" style="flex-shrink:0;color:#475569"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>`,
   };
 
   // ----------------------------------------------------------
@@ -60,12 +74,12 @@ const UI = (() => {
     };
 
     const sectionLabel = (text) =>
-      `<p style="font-size:0.6rem;font-weight:700;color:#2e4a6a;text-transform:uppercase;letter-spacing:0.1em;padding:0 8px;margin:14px 0 4px;">${text}</p>`;
+      `<p style="font-size:0.6rem;font-weight:700;color:#555555;text-transform:uppercase;letter-spacing:0.1em;padding:0 8px;margin:14px 0 4px;">${text}</p>`;
 
     nav.innerHTML = `
       <div style="padding:18px 14px 15px;border-bottom:1px solid rgba(255,255,255,0.06);">
         <div style="display:flex;align-items:center;gap:9px;">
-          <div style="width:30px;height:30px;background:#4f46e5;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <div style="width:30px;height:30px;background:#2a2a2a;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
             ${ICON.shield}
           </div>
           <span style="color:#fff;font-weight:800;font-size:0.9375rem;letter-spacing:-0.025em;">BGTrack</span>
@@ -76,11 +90,13 @@ const UI = (() => {
         ${link('dashboard.html', 'dashboard', 'Dashboard', 'dashboard')}
         ${link('records.html',   'records',   'Records',   'records')}
         ${isManager ? link('reminders.html', 'reminders', 'Reminders', 'reminders') : ''}
-        ${isAdmin ? `
+      </nav>
+      ${isAdmin ? `
+        <div style="padding:0 10px 6px;flex-shrink:0;">
           ${sectionLabel('Admin')}
           ${link('admin.html', 'admin', 'Settings & Users', 'admin')}
-        ` : ''}
-      </nav>
+        </div>
+      ` : ''}
     `;
 
     const profileArea = document.getElementById('profile-area');
@@ -92,20 +108,20 @@ const UI = (() => {
     profileArea.innerHTML = `
       <div style="position:relative;" id="profile-menu-wrap">
         <button id="profile-menu-btn" class="profile-btn">
-          <div style="width:28px;height:28px;border-radius:8px;background:#4f46e5;display:flex;align-items:center;justify-content:center;color:#fff;font-size:0.6875rem;font-weight:700;flex-shrink:0;">${initials}</div>
+          <div style="width:28px;height:28px;border-radius:8px;background:#2a2a2a;display:flex;align-items:center;justify-content:center;color:#e0e0e0;font-size:0.6875rem;font-weight:700;flex-shrink:0;">${initials}</div>
           <div class="profile-name" style="text-align:left;">
-            <p style="font-size:0.75rem;font-weight:600;color:#111827;line-height:1.3;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${user.full_name || user.email}</p>
-            <p style="font-size:0.6875rem;color:#9ca3af;line-height:1.3;text-transform:capitalize;">${roleLabel}</p>
+            <p style="font-size:0.75rem;font-weight:600;color:#f1f5f9;line-height:1.3;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${user.full_name || user.email}</p>
+            <p style="font-size:0.6875rem;color:#64748b;line-height:1.3;text-transform:capitalize;">${roleLabel}</p>
           </div>
           ${ICON.chevron}
         </button>
         <div id="profile-menu-dropdown"
           class="hidden"
-          style="position:absolute;right:0;top:calc(100% + 5px);width:192px;background:#fff;border-radius:11px;box-shadow:0 8px 24px rgba(0,0,0,0.11),0 2px 6px rgba(0,0,0,0.05);border:1px solid #ece9e3;z-index:50;padding:3px 0;overflow:hidden;">
-          <button onclick="UI.showChangePasswordModal()" class="dropdown-item" style="color:#374151;">
+          style="position:absolute;right:0;top:calc(100% + 5px);width:192px;background:#1a1a1a;border-radius:11px;box-shadow:0 8px 24px rgba(0,0,0,0.5),0 2px 6px rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.1);z-index:50;padding:3px 0;overflow:hidden;">
+          <button onclick="UI.showChangePasswordModal()" class="dropdown-item">
             ${ICON.key} Change Password
           </button>
-          <div style="border-top:1px solid #f0ede8;margin:3px 0;"></div>
+          <div style="border-top:1px solid rgba(255,255,255,0.07);margin:3px 0;"></div>
           <button onclick="Auth.signOut()" class="dropdown-item danger">
             ${ICON.signout} Sign out
           </button>
@@ -124,14 +140,18 @@ const UI = (() => {
   // ----------------------------------------------------------
   function toast(message, type = 'success') {
     const cfg = {
-      success: { bg: '#10b981', icon: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>` },
-      error:   { bg: '#ef4444', icon: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>` },
-      warning: { bg: '#f59e0b', icon: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v4m0 4h.01"/>` },
-      info:    { bg: '#6366f1', icon: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 16h-1v-4h-1m1-4h.01"/>` },
+      success: { icon: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>` },
+      error:   { icon: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>` },
+      warning: { icon: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v4m0 4h.01"/>` },
+      info:    { icon: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 16h-1v-4h-1m1-4h.01"/>` },
     };
-    const { bg, icon } = cfg[type] || cfg.info;
+    const { icon } = cfg[type] || cfg.info;
+    const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+    const bg    = isDark ? '#1a1a1a' : '#f0f0f0';
+    const color = isDark ? '#f0f0f0' : '#111111';
+    const border = isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.12)';
     const t = document.createElement('div');
-    t.style.cssText = `position:fixed;bottom:20px;right:20px;z-index:9999;display:flex;align-items:center;gap:10px;padding:11px 16px;border-radius:11px;background:${bg};color:#fff;font-size:0.875rem;font-weight:500;letter-spacing:-0.01em;box-shadow:0 12px 28px rgba(0,0,0,0.18);transform:translateY(10px);opacity:0;transition:all 0.22s cubic-bezier(0.34,1.5,0.64,1);max-width:320px;font-family:inherit;`;
+    t.style.cssText = `position:fixed;bottom:20px;right:20px;z-index:9999;display:flex;align-items:center;gap:10px;padding:11px 16px;border-radius:11px;background:${bg};color:${color};border:${border};font-size:0.875rem;font-weight:500;letter-spacing:-0.01em;box-shadow:0 12px 28px rgba(0,0,0,0.3);transform:translateY(10px);opacity:0;transition:all 0.22s cubic-bezier(0.34,1.5,0.64,1);max-width:320px;font-family:inherit;`;
     t.innerHTML = `<svg style="flex-shrink:0;width:17px;height:17px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">${icon}</svg><span>${message}</span>`;
     document.body.appendChild(t);
     requestAnimationFrame(() => { t.style.transform = 'translateY(0)'; t.style.opacity = '1'; });
@@ -156,16 +176,16 @@ const UI = (() => {
       if (existing) existing.remove();
       const modal = document.createElement('div');
       modal.id = 'confirm-modal';
-      modal.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(15,23,42,0.45);backdrop-filter:blur(3px);';
-      const okBg   = danger ? '#ef4444' : '#4f46e5';
-      const okHov  = danger ? '#dc2626' : '#4338ca';
+      modal.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);';
+      const okBg    = danger ? '#f0f0f0' : '#e0e0e0';
+      const okColor = '#111111';
       modal.innerHTML = `
-        <div style="background:#fff;border-radius:14px;padding:24px;width:100%;max-width:400px;margin:0 16px;box-shadow:0 24px 48px rgba(0,0,0,0.14),0 6px 12px rgba(0,0,0,0.06);">
-          <h3 style="font-size:0.9375rem;font-weight:700;color:#111827;margin:0 0 8px;letter-spacing:-0.02em;">${title}</h3>
-          <p style="font-size:0.875rem;color:#6b7280;margin:0 0 22px;line-height:1.55;">${message}</p>
+        <div style="background:#1a1a1a;border-radius:14px;padding:24px;width:100%;max-width:400px;margin:0 16px;box-shadow:0 24px 48px rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.1);">
+          <h3 style="font-size:0.9375rem;font-weight:700;color:#f0f0f0;margin:0 0 8px;letter-spacing:-0.02em;">${title}</h3>
+          <p style="font-size:0.875rem;color:#888888;margin:0 0 22px;line-height:1.55;">${message}</p>
           <div style="display:flex;gap:10px;">
-            <button id="confirm-cancel" style="flex:1;padding:9px 16px;font-size:0.875rem;font-weight:600;color:#374151;background:#f3f2ef;border:none;border-radius:8px;cursor:pointer;font-family:inherit;">Cancel</button>
-            <button id="confirm-ok"     style="flex:1;padding:9px 16px;font-size:0.875rem;font-weight:600;color:#fff;background:${okBg};border:none;border-radius:8px;cursor:pointer;font-family:inherit;">${confirmLabel}</button>
+            <button id="confirm-cancel" style="flex:1;padding:9px 16px;font-size:0.875rem;font-weight:600;color:#aaaaaa;background:#111111;border:none;border-radius:8px;cursor:pointer;font-family:inherit;">Cancel</button>
+            <button id="confirm-ok"     style="flex:1;padding:9px 16px;font-size:0.875rem;font-weight:600;color:${okColor};background:${okBg};border:none;border-radius:8px;cursor:pointer;font-family:inherit;">${confirmLabel}</button>
           </div>
         </div>`;
       document.body.appendChild(modal);
@@ -185,24 +205,24 @@ const UI = (() => {
 
     const modal = document.createElement('div');
     modal.id = 'change-pw-modal';
-    modal.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(15,23,42,0.45);backdrop-filter:blur(3px);';
+    modal.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);';
     modal.innerHTML = `
-      <div style="background:#fff;border-radius:14px;padding:24px;width:100%;max-width:400px;margin:0 16px;box-shadow:0 24px 48px rgba(0,0,0,0.14);">
-        <h3 style="font-size:0.9375rem;font-weight:700;color:#111827;margin:0 0 4px;letter-spacing:-0.02em;">Change Password</h3>
-        <p style="font-size:0.75rem;color:#9ca3af;margin:0 0 18px;">Confirm your current password to proceed.</p>
+      <div style="background:#1a1a1a;border-radius:14px;padding:24px;width:100%;max-width:400px;margin:0 16px;box-shadow:0 24px 48px rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.1);">
+        <h3 style="font-size:0.9375rem;font-weight:700;color:#f0f0f0;margin:0 0 4px;letter-spacing:-0.02em;">Change Password</h3>
+        <p style="font-size:0.75rem;color:#888888;margin:0 0 18px;">Confirm your current password to proceed.</p>
         <div style="display:flex;flex-direction:column;gap:13px;">
           ${['cpw-current:Current Password:current-password','cpw-new:New Password:new-password','cpw-confirm:Confirm New Password:new-password'].map(f => {
             const [id, lbl, ac] = f.split(':');
             return `<div>
-              <label style="display:block;font-size:0.6875rem;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:5px;">${lbl}</label>
-              <input id="${id}" type="password" autocomplete="${ac}" style="width:100%;padding:9px 12px;border:1.5px solid #e5e3de;border-radius:8px;font-size:0.875rem;outline:none;transition:border-color 0.15s,box-shadow 0.15s;font-family:inherit;box-sizing:border-box;" onfocus="this.style.borderColor='#4f46e5';this.style.boxShadow='0 0 0 3px rgba(79,70,229,0.1)'" onblur="this.style.borderColor='#e5e3de';this.style.boxShadow='none'"/>
+              <label style="display:block;font-size:0.6875rem;font-weight:600;color:#888888;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:5px;">${lbl}</label>
+              <input id="${id}" type="password" autocomplete="${ac}" style="width:100%;padding:9px 12px;border:1.5px solid rgba(255,255,255,0.1);border-radius:8px;font-size:0.875rem;outline:none;transition:border-color 0.15s,box-shadow 0.15s;font-family:inherit;box-sizing:border-box;background:#111111;color:#f0f0f0;" onfocus="this.style.borderColor='#888888';this.style.boxShadow='0 0 0 3px rgba(128,128,128,0.15)'" onblur="this.style.borderColor='rgba(255,255,255,0.1)';this.style.boxShadow='none'"/>
             </div>`;
           }).join('')}
-          <p id="cpw-error" style="display:none;font-size:0.75rem;color:#ef4444;margin:0;"></p>
+          <p id="cpw-error" style="display:none;font-size:0.75rem;color:#aaaaaa;margin:0;"></p>
         </div>
         <div style="display:flex;gap:10px;margin-top:18px;">
-          <button id="cpw-cancel" style="flex:1;padding:9px 16px;font-size:0.875rem;font-weight:600;color:#374151;background:#f3f2ef;border:none;border-radius:8px;cursor:pointer;font-family:inherit;">Cancel</button>
-          <button id="cpw-save"   style="flex:1;padding:9px 16px;font-size:0.875rem;font-weight:600;color:#fff;background:#4f46e5;border:none;border-radius:8px;cursor:pointer;font-family:inherit;">Update Password</button>
+          <button id="cpw-cancel" style="flex:1;padding:9px 16px;font-size:0.875rem;font-weight:600;color:#aaaaaa;background:#111111;border:none;border-radius:8px;cursor:pointer;font-family:inherit;">Cancel</button>
+          <button id="cpw-save"   style="flex:1;padding:9px 16px;font-size:0.875rem;font-weight:600;color:#111111;background:#e0e0e0;border:none;border-radius:8px;cursor:pointer;font-family:inherit;">Update Password</button>
         </div>
       </div>
     `;
@@ -264,28 +284,86 @@ const UI = (() => {
   }
 
   function statusBadge(status) {
-    const map = {
-      'Pending':   { dot:'#f59e0b', bg:'#fffbeb', text:'#92400e', border:'#fde68a' },
-      'Cleared':   { dot:'#10b981', bg:'#ecfdf5', text:'#065f46', border:'#6ee7b7' },
-      'Failed':    { dot:'#ef4444', bg:'#fef2f2', text:'#991b1b', border:'#fca5a5' },
-      'Cancelled': { dot:'#9ca3af', bg:'#f9fafb', text:'#4b5563', border:'#e5e7eb' },
+    const light = document.documentElement.getAttribute('data-theme') === 'light';
+    const map = light ? {
+      'Pending':   { dot:'#777777', bg:'rgba(0,0,0,0.06)',  text:'#555555', border:'rgba(0,0,0,0.12)'  },
+      'Cleared':   { dot:'#222222', bg:'rgba(0,0,0,0.08)',  text:'#111111', border:'rgba(0,0,0,0.15)'  },
+      'Failed':    { dot:'#999999', bg:'rgba(0,0,0,0.04)',  text:'#777777', border:'rgba(0,0,0,0.08)'  },
+      'Cancelled': { dot:'#aaaaaa', bg:'rgba(0,0,0,0.03)',  text:'#888888', border:'rgba(0,0,0,0.06)'  },
+    } : {
+      'Pending':   { dot:'#888888', bg:'rgba(255,255,255,0.05)', text:'#aaaaaa', border:'rgba(255,255,255,0.1)'  },
+      'Cleared':   { dot:'#cccccc', bg:'rgba(255,255,255,0.08)', text:'#dddddd', border:'rgba(255,255,255,0.15)' },
+      'Failed':    { dot:'#555555', bg:'rgba(255,255,255,0.03)', text:'#777777', border:'rgba(255,255,255,0.07)' },
+      'Cancelled': { dot:'#444444', bg:'rgba(255,255,255,0.02)', text:'#666666', border:'rgba(255,255,255,0.05)' },
     };
     const c = map[status];
-    if (!c) return `<span style="font-size:0.75rem;color:#9ca3af;">—</span>`;
+    if (!c) return `<span style="font-size:0.75rem;color:var(--text-secondary);">—</span>`;
     return `<span style="display:inline-flex;align-items:center;gap:5px;padding:3px 9px 3px 7px;border-radius:999px;font-size:0.6875rem;font-weight:600;background:${c.bg};color:${c.text};border:1px solid ${c.border};white-space:nowrap;">
       <span style="width:5px;height:5px;border-radius:50%;background:${c.dot};flex-shrink:0;"></span>${status}
     </span>`;
   }
 
   function expirationBadge(dateStr) {
-    const days = daysUntil(dateStr);
-    if (days === null) return '<span style="color:#9ca3af;font-size:0.875rem;">—</span>';
-    if (days < 0)
-      return `<span style="display:inline-flex;align-items:center;gap:5px;padding:3px 9px 3px 7px;border-radius:999px;font-size:0.6875rem;font-weight:600;background:#fef2f2;color:#991b1b;border:1px solid #fca5a5;white-space:nowrap;"><span style="width:5px;height:5px;border-radius:50%;background:#ef4444;flex-shrink:0;"></span>Expired ${Math.abs(days)}d ago</span>`;
-    if (days <= 20)
-      return `<span style="display:inline-flex;align-items:center;gap:5px;padding:3px 9px 3px 7px;border-radius:999px;font-size:0.6875rem;font-weight:600;background:#fffbeb;color:#92400e;border:1px solid #fde68a;white-space:nowrap;"><span style="width:5px;height:5px;border-radius:50%;background:#f59e0b;flex-shrink:0;"></span>${days}d left</span>`;
-    return `<span style="font-size:0.875rem;color:#374151;">${formatDate(dateStr)}</span>`;
+    const days  = daysUntil(dateStr);
+    const light = document.documentElement.getAttribute('data-theme') === 'light';
+    if (days === null) return `<span style="color:var(--text-secondary);font-size:0.875rem;">—</span>`;
+    if (days < 0) {
+      const bg = light ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.04)';
+      const cl = light ? '#555555' : '#888888';
+      const dt = light ? '#444444' : '#666666';
+      return `<span style="display:inline-flex;align-items:center;gap:5px;padding:3px 9px 3px 7px;border-radius:999px;font-size:0.6875rem;font-weight:600;background:${bg};color:${cl};border:1px solid ${light?'rgba(0,0,0,0.1)':'rgba(255,255,255,0.08)'};white-space:nowrap;"><span style="width:5px;height:5px;border-radius:50%;background:${dt};flex-shrink:0;"></span>Expired ${Math.abs(days)}d ago</span>`;
+    }
+    if (days <= 20) {
+      const bg = light ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.05)';
+      const cl = light ? '#777777' : '#aaaaaa';
+      const dt = light ? '#888888' : '#888888';
+      return `<span style="display:inline-flex;align-items:center;gap:5px;padding:3px 9px 3px 7px;border-radius:999px;font-size:0.6875rem;font-weight:600;background:${bg};color:${cl};border:1px solid ${light?'rgba(0,0,0,0.08)':'rgba(255,255,255,0.1)'};white-space:nowrap;"><span style="width:5px;height:5px;border-radius:50%;background:${dt};flex-shrink:0;"></span>${days}d left</span>`;
+    }
+    return `<span style="font-size:0.875rem;color:var(--text-secondary);">${formatDate(dateStr)}</span>`;
   }
 
-  return { renderNav, toast, showLoader, hideLoader, confirm, showChangePasswordModal, formatDate, daysUntil, statusBadge, expirationBadge };
+  // ----------------------------------------------------------
+  // Theme toggle
+  // ----------------------------------------------------------
+  const MOON_ICON = `<svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.7" style="flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12.79A9 9 0 1111.21 3a7 7 0 009.79 9.79z"/></svg>`;
+  const SUN_ICON  = `<svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.7" style="flex-shrink:0"><circle cx="12" cy="12" r="5"/><path stroke-linecap="round" d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>`;
+
+  function isLight() {
+    return document.documentElement.getAttribute('data-theme') === 'light';
+  }
+
+  function applyTheme(light) {
+    if (light) {
+      document.documentElement.setAttribute('data-theme', 'light');
+    } else {
+      document.documentElement.removeAttribute('data-theme');
+    }
+    localStorage.setItem('bgtrack-theme', light ? 'light' : 'dark');
+    updateToggleUI(light);
+  }
+
+  function updateToggleUI(light) {
+    const icon  = document.getElementById('theme-icon');
+    const label = document.getElementById('theme-label');
+    if (!icon || !label) return;
+    icon.innerHTML    = light ? MOON_ICON : SUN_ICON;
+    label.textContent = light ? 'Dark Mode' : 'Light Mode';
+  }
+
+  function injectThemeToggle() {
+    const sidebar = document.getElementById('sidebar');
+    if (!sidebar) return;
+    const wrap = document.createElement('div');
+    wrap.className = 'theme-toggle-wrap';
+    wrap.innerHTML = `
+      <button class="theme-toggle-btn" onclick="UI.applyTheme(!UI.isLight())">
+        <span id="theme-icon"></span>
+        <span id="theme-label"></span>
+      </button>
+    `;
+    sidebar.appendChild(wrap);
+    updateToggleUI(isLight());
+  }
+
+  return { renderNav, toast, showLoader, hideLoader, confirm, showChangePasswordModal, formatDate, daysUntil, statusBadge, expirationBadge, isLight, applyTheme, updateToggleUI, injectThemeToggle };
 })();

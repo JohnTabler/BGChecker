@@ -3,44 +3,60 @@
 <head>
   <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>BGTrack — Reminders</title>
+  <script>
+    (function() { const t = localStorage.getItem('bgtrack-theme'); if (t === 'light') document.documentElement.setAttribute('data-theme', 'light'); })();
+  </script>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --body-bg:#0d0d0d; --body-glow:radial-gradient(ellipse 80% 50% at 20% 0%,rgba(255,255,255,0.015) 0%,transparent 60%);
+      --header-bg:rgba(10,10,10,0.90); --header-border:rgba(255,255,255,0.08);
+      --card-bg:#161616; --card-border:rgba(255,255,255,0.08); --card-inner-border:rgba(255,255,255,0.05);
+      --text-heading:#f0f0f0; --text-body:#b0b0b0; --text-secondary:#707070; --text-muted:#3d3d3d;
+      --accent:#d0d0d0; --accent-hover:#ffffff;
+      --row-border:rgba(255,255,255,0.05); --row-hover:rgba(255,255,255,0.03); --loader-bg:#0d0d0d;
+      --input-bg:#111111; --input-border:rgba(255,255,255,0.1); --input-focus:#888888;
+    }
+    [data-theme="light"] {
+      --body-bg:#f5f5f5; --body-glow:none;
+      --header-bg:rgba(255,255,255,0.92); --header-border:#e0e0e0;
+      --card-bg:#ffffff; --card-border:#e0e0e0; --card-inner-border:#f0f0f0;
+      --text-heading:#111111; --text-body:#333333; --text-secondary:#777777; --text-muted:#aaaaaa;
+      --accent:#222222; --accent-hover:#000000;
+      --row-border:#f0f0f0; --row-hover:rgba(0,0,0,0.02); --loader-bg:#f5f5f5;
+      --input-bg:#ffffff; --input-border:#e0e0e0; --input-focus:#666666;
+    }
     *, *::before, *::after { box-sizing: border-box; }
-    body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f0efe9; }
-    .page-header { background: #fff; border-bottom: 1px solid #e5e3de; padding: 0 24px; height: 52px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 20; }
-    .page-title  { font-size: 0.9375rem; font-weight: 700; color: #111827; letter-spacing: -0.02em; }
-    .card        { background: #fff; border: 1px solid #e5e3de; border-radius: 12px; }
+    body { font-family: 'Outfit', sans-serif; background: var(--body-bg); background-image: var(--body-glow); transition: background 0.3s; }
+    .page-header { background: var(--header-bg); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border-bottom: 1px solid var(--header-border); padding: 0 24px; height: 52px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 20; transition: background 0.3s, border-color 0.3s; }
+    .page-title  { font-size: 0.9375rem; font-weight: 700; color: var(--text-heading); letter-spacing: -0.02em; }
+    .card        { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; transition: background 0.3s, border-color 0.3s; }
     .filter-input {
-      padding: 7px 11px;
-      border: 1.5px solid #e5e3de;
-      border-radius: 7px;
-      font-size: 0.8125rem;
-      font-family: inherit;
-      outline: none;
-      color: #374151;
-      background: #fff;
+      padding: 7px 11px; border: 1.5px solid var(--input-border); border-radius: 7px;
+      font-size: 0.8125rem; font-family: inherit; outline: none;
+      color: var(--text-heading); background: var(--input-bg);
       transition: border-color 0.15s, box-shadow 0.15s;
     }
-    .filter-input:focus { border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79,70,229,0.08); }
-    .filter-input::placeholder { color: #9ca3af; }
+    .filter-input:focus { border-color: var(--input-focus); box-shadow: 0 0 0 3px rgba(128,128,128,0.12); }
+    .filter-input::placeholder { color: var(--text-secondary); }
+    .filter-input option { background: var(--card-bg); color: var(--text-heading); }
     th { white-space: nowrap; }
-    .tbl-head { font-size: 0.6875rem; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.07em; padding: 11px 16px; text-align: left; }
-    .tbl-row  { border-bottom: 1px solid #f5f4f1; transition: background 0.1s; }
+    .tbl-head { font-size: 0.6875rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.07em; padding: 11px 16px; text-align: left; }
+    .tbl-row  { border-bottom: 1px solid var(--row-border); transition: background 0.1s; }
     .tbl-row:last-child { border-bottom: none; }
-    .tbl-row:hover { background: #f9f8f5; }
-    .tbl-cell { padding: 11px 16px; font-size: 0.875rem; color: #374151; }
-    .btn-secondary{ display:inline-flex;align-items:center;gap:5px;padding:7px 13px;background:#f0efe9;color:#374151;font-size:0.8125rem;font-weight:600;border:none;border-radius:7px;cursor:pointer;font-family:inherit;letter-spacing:-0.01em;transition:background 0.15s; }
-    .btn-secondary:hover { background:#e5e3de; }
-    /* Tab pill group */
-    .tab-group { display:flex;gap:2px;background:#f0efe9;padding:3px;border-radius:8px; }
-    .tab-btn   { padding:6px 14px;border-radius:6px;font-size:0.8rem;font-weight:600;border:none;cursor:pointer;font-family:inherit;transition:all 0.12s;color:#6b7280;background:transparent; }
-    .tab-btn.active { background:#fff;color:#111827;box-shadow:0 1px 3px rgba(0,0,0,0.08); }
+    .tbl-row:hover { background: var(--row-hover); }
+    .tbl-cell { padding: 11px 16px; font-size: 0.875rem; color: var(--text-body); }
+    .btn-secondary{ display:inline-flex;align-items:center;gap:5px;padding:7px 13px;background:var(--card-border);color:var(--text-body);font-size:0.8125rem;font-weight:600;border:none;border-radius:7px;cursor:pointer;font-family:inherit;letter-spacing:-0.01em;transition:background 0.15s; }
+    .btn-secondary:hover { background:var(--card-inner-border); }
+    .tab-group { display:flex;gap:2px;background:var(--row-hover);padding:3px;border-radius:8px; }
+    .tab-btn   { padding:6px 14px;border-radius:6px;font-size:0.8rem;font-weight:600;border:none;cursor:pointer;font-family:inherit;transition:all 0.12s;color:var(--text-secondary);background:transparent; }
+    .tab-btn.active { background:var(--card-bg);color:var(--text-heading);box-shadow:0 1px 3px rgba(0,0,0,0.3); }
   </style>
 </head>
 <body>
-  <aside id="sidebar" class="w-56 flex-shrink-0 flex flex-col min-h-screen fixed top-0 left-0 z-30" style="background:#0e1a33;"></aside>
+  <aside id="sidebar" class="w-56 flex-shrink-0 flex flex-col min-h-screen fixed top-0 left-0 z-30" style="background:linear-gradient(180deg,#111111 0%,#0a0a0a 100%);"></aside>
   <div class="ml-56 flex-1 flex flex-col min-h-screen">
     <header class="page-header">
       <h1 class="page-title">Reminders</h1>
@@ -53,8 +69,8 @@
       </div>
     </header>
 
-    <div id="page-loader" class="fixed inset-0 z-50 bg-white flex items-center justify-center">
-      <svg class="w-8 h-8" style="animation:spin 0.9s linear infinite;color:#4f46e5;" fill="none" viewBox="0 0 24 24">
+    <div id="page-loader" class="fixed inset-0 z-50 flex items-center justify-center" style="background:var(--loader-bg);">
+      <svg class="w-8 h-8" style="animation:spin 0.9s linear infinite;color:#888888;" fill="none" viewBox="0 0 24 24">
         <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
         <circle style="opacity:.2" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
         <path style="opacity:.8" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
@@ -69,7 +85,7 @@
           <button id="tab-upcoming" class="tab-btn"        onclick="switchTab('upcoming')">Upcoming</button>
           <button id="tab-expired"  class="tab-btn"        onclick="switchTab('expired')">Expired</button>
         </div>
-        <p id="reminder-subtitle" style="font-size:0.8125rem;color:#9ca3af;font-weight:500;"></p>
+        <p id="reminder-subtitle" style="font-size:0.8125rem;color:#475569;font-weight:500;"></p>
       </div>
 
       <!-- Filters -->
@@ -83,20 +99,20 @@
               <option value="">All statuses</option>
               <option>Pending</option><option>Cleared</option><option>Failed</option><option>Cancelled</option>
             </select>
-            <button id="clear-filters" title="Clear" style="padding:7px 11px;border:1.5px solid #e5e3de;border-radius:7px;background:#fff;color:#9ca3af;cursor:pointer;font-size:0.8125rem;transition:all 0.15s;font-family:inherit;" onmouseover="this.style.color='#374151';this.style.borderColor='#9ca3af'" onmouseout="this.style.color='#9ca3af';this.style.borderColor='#e5e3de'">✕</button>
+            <button id="clear-filters" title="Clear" style="padding:7px 11px;border:1.5px solid var(--input-border);border-radius:7px;background:var(--input-bg);color:var(--text-secondary);cursor:pointer;font-size:0.8125rem;transition:all 0.15s;font-family:inherit;" onmouseover="this.style.color='var(--text-body)'" onmouseout="this.style.color='var(--text-secondary)'">✕</button>
           </div>
         </div>
       </div>
 
       <!-- Table -->
       <div class="card overflow-hidden">
-        <div style="padding:11px 16px;border-bottom:1px solid #f0ede8;">
-          <p id="result-info" style="font-size:0.75rem;font-weight:600;color:#9ca3af;"></p>
+        <div style="padding:11px 16px;border-bottom:1px solid rgba(255,255,255,0.06);">
+          <p id="result-info" style="font-size:0.75rem;font-weight:600;color:#475569;"></p>
         </div>
         <div class="overflow-x-auto">
           <table style="width:100%;border-collapse:collapse;">
             <thead>
-              <tr style="border-bottom:1px solid #f0ede8;background:#faf9f7;">
+              <tr style="border-bottom:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.03);">
                 <th class="tbl-head">Employee</th>
                 <th class="tbl-head">Project</th>
                 <th class="tbl-head">Vendor</th>
@@ -127,6 +143,7 @@
       currentUser = await Auth.guard('manager');
       if (!currentUser) return;
       UI.renderNav(currentUser);
+      UI.injectThemeToggle();
       Auth.startSessionTimeout();
       await loadData();
       attachListeners();
@@ -186,16 +203,16 @@
         const exp  = new Date(r.expiration_date);
         const days = Math.ceil((exp-today)/(1000*60*60*24));
         const daysDisplay = days < 0
-          ? `<span style="font-size:0.75rem;font-weight:700;color:#ef4444;">${Math.abs(days)}d ago</span>`
-          : `<span style="font-size:0.75rem;font-weight:700;color:#d97706;">${days}d</span>`;
+          ? `<span style="font-size:0.75rem;font-weight:700;color:var(--text-secondary);">${Math.abs(days)}d ago</span>`
+          : `<span style="font-size:0.75rem;font-weight:700;color:var(--text-body);">${days}d</span>`;
         return `<tr class="tbl-row">
-          <td class="tbl-cell" style="font-weight:600;color:#111827;">${r.employee_name}</td>
-          <td class="tbl-cell">${r.project}</td>
-          <td class="tbl-cell" style="color:#6b7280;">${r.vendor||'—'}</td>
+          <td class="tbl-cell" style="font-weight:600;color:var(--text-heading);">${r.employee_name}</td>
+          <td class="tbl-cell" style="color:var(--text-body);">${r.project}</td>
+          <td class="tbl-cell" style="color:var(--text-secondary);">${r.vendor||'—'}</td>
           <td class="tbl-cell">${UI.statusBadge(r.status)}</td>
-          <td class="tbl-cell" style="color:#6b7280;">${UI.formatDate(r.expiration_date)}</td>
+          <td class="tbl-cell" style="color:var(--text-secondary);">${UI.formatDate(r.expiration_date)}</td>
           <td class="tbl-cell">${daysDisplay}</td>
-          <td class="tbl-cell" style="text-align:right;"><a href="record-detail.html?id=${r.id}" style="font-size:0.75rem;font-weight:600;color:#4f46e5;text-decoration:none;" onmouseover="this.style.color='#4338ca'" onmouseout="this.style.color='#4f46e5'">View →</a></td>
+          <td class="tbl-cell" style="text-align:right;"><a href="record-detail.html?id=${r.id}" style="font-size:0.75rem;font-weight:600;color:var(--accent);text-decoration:none;" onmouseover="this.style.color='var(--accent-hover)'" onmouseout="this.style.color='var(--accent)'">View →</a></td>
         </tr>`;
       }).join('');
     }

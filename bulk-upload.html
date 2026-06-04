@@ -3,60 +3,70 @@
 <head>
   <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>BGTrack — Bulk Upload</title>
+  <script>
+    (function() { const t = localStorage.getItem('bgtrack-theme'); if (t === 'light') document.documentElement.setAttribute('data-theme', 'light'); })();
+  </script>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --body-bg:#0d0d0d; --body-glow:radial-gradient(ellipse 80% 50% at 20% 0%,rgba(255,255,255,0.015) 0%,transparent 60%);
+      --header-bg:rgba(10,10,10,0.90); --header-border:rgba(255,255,255,0.08);
+      --card-bg:#161616; --card-border:rgba(255,255,255,0.08); --card-inner-border:rgba(255,255,255,0.05);
+      --text-heading:#f0f0f0; --text-body:#b0b0b0; --text-secondary:#707070; --text-muted:#3d3d3d;
+      --accent:#d0d0d0; --accent-hover:#ffffff;
+      --row-border:rgba(255,255,255,0.05); --row-hover:rgba(255,255,255,0.03); --loader-bg:#0d0d0d;
+      --input-bg:#111111; --input-border:rgba(255,255,255,0.1); --input-focus:#888888;
+    }
+    [data-theme="light"] {
+      --body-bg:#f5f5f5; --body-glow:none;
+      --header-bg:rgba(255,255,255,0.92); --header-border:#e0e0e0;
+      --card-bg:#ffffff; --card-border:#e0e0e0; --card-inner-border:#f0f0f0;
+      --text-heading:#111111; --text-body:#333333; --text-secondary:#777777; --text-muted:#aaaaaa;
+      --accent:#222222; --accent-hover:#000000;
+      --row-border:#f0f0f0; --row-hover:rgba(0,0,0,0.02); --loader-bg:#f5f5f5;
+      --input-bg:#ffffff; --input-border:#e0e0e0; --input-focus:#666666;
+    }
     *, *::before, *::after { box-sizing: border-box; }
-    body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f0efe9; }
-    .page-header { background: #fff; border-bottom: 1px solid #e5e3de; padding: 0 24px; height: 52px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 20; }
+    body { font-family: 'Outfit', sans-serif; background: var(--body-bg); background-image: var(--body-glow); transition: background 0.3s; }
+    .page-header { background: var(--header-bg); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border-bottom: 1px solid var(--header-border); padding: 0 24px; height: 52px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 20; transition: background 0.3s, border-color 0.3s; }
     .breadcrumb  { font-size: 0.875rem; display: flex; align-items: center; gap: 7px; }
-    .bc-link     { color: #9ca3af; text-decoration: none; font-weight: 500; transition: color 0.12s; }
-    .bc-link:hover { color: #4f46e5; }
-    .bc-sep      { color: #d1cec9; }
-    .bc-cur      { color: #111827; font-weight: 600; }
-    .card        { background: #fff; border: 1px solid #e5e3de; border-radius: 12px; }
-    .card-header { padding: 15px 20px; border-bottom: 1px solid #f0ede8; background: #faf9f7; display: flex; align-items: center; justify-content: space-between; }
-    .card-title  { font-size: 0.875rem; font-weight: 700; color: #111827; letter-spacing: -0.015em; }
-    .card-sub    { font-size: 0.75rem; color: #9ca3af; margin-top: 3px; }
-    .btn-primary  { display:inline-flex;align-items:center;gap:5px;padding:8px 14px;background:#4f46e5;color:#fff;font-size:0.8125rem;font-weight:600;border:none;border-radius:7px;cursor:pointer;font-family:inherit;letter-spacing:-0.01em;transition:background 0.15s; }
-    .btn-primary:hover  { background:#4338ca; }
-    .btn-primary:disabled { opacity:0.5;cursor:not-allowed; }
-    .btn-secondary{ display:inline-flex;align-items:center;gap:5px;padding:8px 14px;background:#f0efe9;color:#374151;font-size:0.8125rem;font-weight:600;border:1.5px solid #e5e3de;border-radius:7px;cursor:pointer;font-family:inherit;letter-spacing:-0.01em;transition:background 0.15s; }
-    .btn-secondary:hover { background:#e5e3de; }
-    .tbl-head { font-size: 0.6875rem; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.07em; padding: 10px 10px; text-align: left; }
+    .bc-link     { color: var(--text-secondary); text-decoration: none; font-weight: 500; transition: color 0.12s; }
+    .bc-link:hover { color: var(--text-heading); }
+    .bc-sep      { color: var(--text-muted); }
+    .bc-cur      { color: var(--text-heading); font-weight: 600; }
+    .card        { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; transition: background 0.3s, border-color 0.3s; }
+    .card-header { padding: 15px 20px; border-bottom: 1px solid var(--card-inner-border); background: var(--row-hover); display: flex; align-items: center; justify-content: space-between; }
+    .card-title  { font-size: 0.875rem; font-weight: 700; color: var(--text-heading); letter-spacing: -0.015em; }
+    .card-sub    { font-size: 0.75rem; color: var(--text-secondary); margin-top: 3px; }
+    .btn-primary  { display:inline-flex;align-items:center;gap:5px;padding:8px 14px;background:var(--text-heading);color:var(--body-bg);font-size:0.8125rem;font-weight:600;border:none;border-radius:7px;cursor:pointer;font-family:inherit;letter-spacing:-0.01em;transition:background 0.15s,color 0.15s; }
+    .btn-primary:hover  { background:var(--accent-hover);color:var(--body-bg); }
+    .btn-primary:disabled { opacity:0.4;cursor:not-allowed; }
+    .btn-secondary{ display:inline-flex;align-items:center;gap:5px;padding:8px 14px;background:var(--card-border);color:var(--text-body);font-size:0.8125rem;font-weight:600;border:1.5px solid var(--card-border);border-radius:7px;cursor:pointer;font-family:inherit;letter-spacing:-0.01em;transition:background 0.15s; }
+    .btn-secondary:hover { background:var(--card-inner-border); }
+    .tbl-head { font-size: 0.6875rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.07em; padding: 10px 10px; text-align: left; }
     .cell-input {
-      width: 100%;
-      padding: 5px 8px;
-      font-size: 0.8125rem;
-      font-family: inherit;
-      border: 1.5px solid transparent;
-      border-radius: 6px;
-      outline: none;
-      background: transparent;
-      color: #374151;
+      width: 100%; padding: 5px 8px; font-size: 0.8125rem; font-family: inherit;
+      border: 1.5px solid transparent; border-radius: 6px; outline: none;
+      background: transparent; color: var(--text-heading);
       transition: border-color 0.12s, background 0.12s;
     }
-    .cell-input:focus { border-color: #4f46e5; background: #fff; box-shadow: 0 0 0 2px rgba(79,70,229,0.08); }
-    .cell-input.field-error { border-color: #fca5a5 !important; background: #fef2f2 !important; }
+    .cell-input:focus { border-color: var(--input-focus); background: var(--input-bg); box-shadow: 0 0 0 2px rgba(128,128,128,0.12); }
+    .cell-input.field-error { border-color: rgba(255,255,255,0.3) !important; background: rgba(255,255,255,0.04) !important; }
+    .cell-input option { background: var(--card-bg); color: var(--text-heading); }
     .drop-zone {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      width: 100%;
-      min-height: 140px;
-      border: 2px dashed #d1cec9;
-      border-radius: 10px;
-      cursor: pointer;
-      transition: border-color 0.15s, background 0.15s;
-      background: #faf9f7;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      width: 100%; min-height: 140px;
+      border: 2px dashed var(--card-border); border-radius: 10px;
+      cursor: pointer; transition: border-color 0.15s, background 0.15s;
+      background: var(--row-hover);
     }
-    .drop-zone:hover, .drop-zone.dragover { border-color: #4f46e5; background: #f5f3ff; }
+    .drop-zone:hover, .drop-zone.dragover { border-color: var(--accent); background: rgba(255,255,255,0.04); }
   </style>
 </head>
 <body>
-  <aside id="sidebar" class="w-56 flex-shrink-0 flex flex-col min-h-screen fixed top-0 left-0 z-30" style="background:#0e1a33;"></aside>
+  <aside id="sidebar" class="w-56 flex-shrink-0 flex flex-col min-h-screen fixed top-0 left-0 z-30" style="background:linear-gradient(180deg,#111111 0%,#0a0a0a 100%);"></aside>
   <div class="ml-56 flex-1 flex flex-col min-h-screen">
 
     <header class="page-header">
@@ -68,8 +78,8 @@
       </div>
     </header>
 
-    <div id="page-loader" class="fixed inset-0 z-50 bg-white flex items-center justify-center">
-      <svg class="w-8 h-8" style="animation:spin 0.9s linear infinite;color:#4f46e5;" fill="none" viewBox="0 0 24 24">
+    <div id="page-loader" class="fixed inset-0 z-50 flex items-center justify-center" style="background:var(--loader-bg);">
+      <svg class="w-8 h-8" style="animation:spin 0.9s linear infinite;color:#888888;" fill="none" viewBox="0 0 24 24">
         <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
         <circle style="opacity:.2" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
         <path style="opacity:.8" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
@@ -82,8 +92,8 @@
       <div id="step-upload" class="card" style="padding:22px;">
         <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:18px;">
           <div>
-            <h2 style="font-size:0.9375rem;font-weight:700;color:#111827;letter-spacing:-0.02em;margin:0 0 3px;">Step 1 — Upload CSV</h2>
-            <p style="font-size:0.8125rem;color:#9ca3af;margin:0;">Download the template, fill it in, then upload here.</p>
+            <h2 style="font-size:0.9375rem;font-weight:700;color:var(--text-heading);letter-spacing:-0.02em;margin:0 0 3px;">Step 1 — Upload CSV</h2>
+            <p style="font-size:0.8125rem;color:var(--text-secondary);margin:0;">Download the template, fill it in, then upload here.</p>
           </div>
           <button id="download-template" class="btn-secondary">
             <svg style="width:14px;height:14px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
@@ -91,14 +101,14 @@
           </button>
         </div>
         <label id="drop-zone" class="drop-zone">
-          <div style="width:44px;height:44px;background:#f0efe9;border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:10px;">
-            <svg style="width:22px;height:22px;color:#6b7280;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75"><path stroke-linecap="round" stroke-linejoin="round" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          <div style="width:44px;height:44px;background:var(--card-border);border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:10px;">
+            <svg style="width:22px;height:22px;color:var(--text-secondary);" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75"><path stroke-linecap="round" stroke-linejoin="round" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
           </div>
-          <p style="font-size:0.875rem;font-weight:600;color:#374151;margin:0 0 3px;">Drop CSV here or <span style="color:#4f46e5;">browse</span></p>
-          <p style="font-size:0.75rem;color:#9ca3af;margin:0;">CSV only · Max 5 MB</p>
+          <p style="font-size:0.875rem;font-weight:600;color:var(--text-body);margin:0 0 3px;">Drop CSV here or <span style="color:var(--accent);">browse</span></p>
+          <p style="font-size:0.75rem;color:var(--text-secondary);margin:0;">CSV only · Max 5 MB</p>
           <input id="file-input" type="file" accept=".csv" class="hidden" />
         </label>
-        <div id="upload-error" class="hidden" style="margin-top:12px;padding:11px 13px;background:#fef2f2;border:1px solid #fca5a5;border-radius:8px;font-size:0.875rem;color:#dc2626;font-weight:500;"></div>
+        <div id="upload-error" class="hidden" style="margin-top:12px;padding:11px 13px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.12);border-radius:8px;font-size:0.875rem;color:var(--text-body);font-weight:500;"></div>
       </div>
 
       <!-- Step 2: Preview -->
@@ -106,15 +116,15 @@
 
         <!-- Status bar -->
         <div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px;">
-          <div style="display:inline-flex;align-items:center;gap:7px;padding:6px 12px;background:#ecfdf5;border:1px solid #6ee7b7;border-radius:8px;">
-            <span style="width:7px;height:7px;border-radius:50%;background:#10b981;flex-shrink:0;"></span>
-            <span style="font-size:0.8rem;font-weight:600;color:#065f46;"><span id="valid-count">0</span> valid</span>
+          <div style="display:inline-flex;align-items:center;gap:7px;padding:6px 12px;background:var(--row-hover);border:1px solid var(--card-border);border-radius:8px;">
+            <span style="width:7px;height:7px;border-radius:50%;background:var(--text-heading);flex-shrink:0;"></span>
+            <span style="font-size:0.8rem;font-weight:600;color:var(--text-body);"><span id="valid-count">0</span> valid</span>
           </div>
-          <div style="display:inline-flex;align-items:center;gap:7px;padding:6px 12px;background:#fef2f2;border:1px solid #fca5a5;border-radius:8px;">
-            <span style="width:7px;height:7px;border-radius:50%;background:#ef4444;flex-shrink:0;"></span>
-            <span style="font-size:0.8rem;font-weight:600;color:#991b1b;"><span id="error-count">0</span> need attention</span>
+          <div style="display:inline-flex;align-items:center;gap:7px;padding:6px 12px;background:var(--row-hover);border:1px solid var(--card-border);border-radius:8px;">
+            <span style="width:7px;height:7px;border-radius:50%;background:var(--text-secondary);flex-shrink:0;"></span>
+            <span style="font-size:0.8rem;font-weight:600;color:var(--text-secondary);"><span id="error-count">0</span> need attention</span>
           </div>
-          <p style="font-size:0.8125rem;color:#9ca3af;">Fix errors inline — red fields are required or invalid.</p>
+          <p style="font-size:0.8125rem;color:var(--text-secondary);">Fix errors inline — highlighted fields are required or invalid.</p>
         </div>
 
         <!-- Table -->
@@ -122,7 +132,7 @@
           <div class="overflow-x-auto">
             <table style="width:100%;border-collapse:collapse;">
               <thead>
-                <tr style="border-bottom:1px solid #f0ede8;background:#faf9f7;">
+                <tr style="border-bottom:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.03);">
                   <th class="tbl-head" style="width:36px;">#</th>
                   <th class="tbl-head">Employee *</th>
                   <th class="tbl-head">Project *</th>
@@ -146,7 +156,7 @@
             Upload different file
           </button>
           <div style="display:flex;align-items:center;gap:12px;">
-            <p id="import-note" style="font-size:0.8125rem;color:#9ca3af;"></p>
+            <p id="import-note" style="font-size:0.8125rem;color:#475569;"></p>
             <button id="import-btn" class="btn-primary" style="padding:9px 18px;">Import Records</button>
           </div>
         </div>
@@ -184,6 +194,7 @@
       currentUser = await Auth.guard('manager');
       if (!currentUser) return;
       UI.renderNav(currentUser);
+      UI.injectThemeToggle();
       Auth.startSessionTimeout();
       attachListeners();
       UI.hideLoader();
@@ -270,20 +281,20 @@
         const errors=validateRow(row); const hasError=Object.keys(errors).length>0;
         if(hasError) err++; else v++;
         const exp=computeExpiration(row.date_processed);
-        const rowBg = hasError ? 'background:#fff9f9;' : '';
+        const rowBg = hasError ? 'background:rgba(239,68,68,0.05);' : '';
         return `
-          <tr style="${rowBg}border-bottom:1px solid #f5f4f1;" data-row="${rowIdx}">
-            <td style="padding:6px 10px;font-size:0.75rem;color:#9ca3af;text-align:center;">${row._index}</td>
+          <tr style="${rowBg}border-bottom:1px solid rgba(255,255,255,0.05);" data-row="${rowIdx}">
+            <td style="padding:6px 10px;font-size:0.75rem;color:#475569;text-align:center;">${row._index}</td>
             ${editableCell(rowIdx,'employee_name',row.employee_name,errors.employee_name)}
             ${editableCell(rowIdx,'project',row.project,errors.project)}
             ${editableCell(rowIdx,'date_ordered',row.date_ordered,errors.date_ordered,'date')}
             ${editableCell(rowIdx,'date_processed',row.date_processed,errors.date_processed,'date')}
             ${editableCell(rowIdx,'vendor',row.vendor,null)}
             ${statusCell(rowIdx,row.status,errors.status)}
-            <td style="padding:6px 10px;font-size:0.75rem;color:#6b7280;" id="exp-${rowIdx}">${exp||'—'}</td>
-            <td style="padding:6px 10px;text-align:center;"><button onclick="removeRow(${rowIdx})" style="width:22px;height:22px;border:none;background:none;cursor:pointer;color:#d1cec9;font-size:1rem;line-height:1;border-radius:4px;transition:all 0.12s;" onmouseover="this.style.color='#ef4444';this.style.background='#fef2f2'" onmouseout="this.style.color='#d1cec9';this.style.background='none'" title="Remove">✕</button></td>
+            <td style="padding:6px 10px;font-size:0.75rem;color:#64748b;" id="exp-${rowIdx}">${exp||'—'}</td>
+            <td style="padding:6px 10px;text-align:center;"><button onclick="removeRow(${rowIdx})" style="width:22px;height:22px;border:none;background:none;cursor:pointer;color:#334155;font-size:1rem;line-height:1;border-radius:4px;transition:all 0.12s;" onmouseover="this.style.color='#f87171';this.style.background='rgba(239,68,68,0.1)'" onmouseout="this.style.color='#334155';this.style.background='none'" title="Remove">✕</button></td>
           </tr>
-          ${hasError ? `<tr data-row-err="${rowIdx}" style="background:#fff9f9;"><td></td><td colspan="8" style="padding:0 10px 8px;font-size:0.75rem;color:#ef4444;">${Object.entries(errors).map(([f,m])=>`<b>${f.replace(/_/g,' ')}:</b> ${m}`).join(' · ')}</td></tr>` : ''}`;
+          ${hasError ? `<tr data-row-err="${rowIdx}" style="background:rgba(239,68,68,0.05);"><td></td><td colspan="8" style="padding:0 10px 8px;font-size:0.75rem;color:#f87171;">${Object.entries(errors).map(([f,m])=>`<b>${f.replace(/_/g,' ')}:</b> ${m}`).join(' · ')}</td></tr>` : ''}`;
       }).join('');
       updateCounts(v, err);
       document.querySelectorAll('[data-row][data-field]').forEach(el => el.addEventListener('change', handleCellChange));
@@ -302,7 +313,7 @@
       parsedRows[rowIdx][field]=e.target.value.trim();
       if(field==='date_processed') { const el=document.getElementById(`exp-${rowIdx}`); if(el) el.textContent=computeExpiration(parsedRows[rowIdx].date_processed)||'—'; }
       const errors=validateRow(parsedRows[rowIdx]); const hasError=Object.keys(errors).length>0;
-      const tr=document.querySelector(`tr[data-row="${rowIdx}"]`); if(tr) tr.style.background=hasError?'#fff9f9':'';
+      const tr=document.querySelector(`tr[data-row="${rowIdx}"]`); if(tr) tr.style.background=hasError?'rgba(239,68,68,0.05)':'';
       const errTr=document.querySelector(`tr[data-row-err="${rowIdx}"]`);
       if(errTr) errTr.children[1].textContent=hasError?Object.entries(errors).map(([f,m])=>`${f.replace(/_/g,' ')}: ${m}`).join(' · '):'';
       e.target.className=errors[field]?'cell-input field-error':'cell-input';
